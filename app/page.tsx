@@ -8,6 +8,9 @@ import { processShoppingList } from '@/lib/store-data';
 import ShoppingListForm from '@/components/shopping-list-form';
 import OptimizedListView from '@/components/optimized-list-view';
 import AIStatus from '@/components/ai-status';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { ListPlus } from 'lucide-react';
 
 // Define the Store interface expected by ShoppingListForm and for availableStores
 interface Store {
@@ -22,6 +25,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isAIProcessed, setIsAIProcessed] = useState<boolean>(false);
+  const [showForm, setShowForm] = useState<boolean>(true); // Control form visibility
 
   // New state variables required by ShoppingListForm
   const [userId, setUserId] = useState<string>('guest-user-app-app'); // Default or load from auth
@@ -101,6 +105,7 @@ export default function HomePage() {
       // API returns items in the correct format
       setOptimizedItems(apiResponse.items);
       setIsOptimized(true);
+      setShowForm(false); // Hide form after successful optimization
       
       // Update AI processing status
       // Check if metadata exists and has processedWith
@@ -122,11 +127,38 @@ export default function HomePage() {
       const processedItems = processShoppingList(rawText, storeForProcessing as any);
       setOptimizedItems(processedItems);
       setIsOptimized(true);
+      setShowForm(false); // Hide form after successful optimization
       setIsAIProcessed(false);
     } finally {
       setIsLoading(false);
     }
   }, [rawText, selectedStoreId, availableStores, userId, listName]);
+
+  // Define handleReset first
+  const handleReset = useCallback(() => {
+    setOptimizedItems([]);
+    setIsOptimized(false);
+    setRawText('');
+    setError(null);
+    setIsAIProcessed(false);
+    setShowForm(true); // Show form when resetting
+  }, []);
+  
+  const toggleFormVisibility = useCallback(() => {
+    // When showing the form in an optimized state, we want to keep optimization active
+    setShowForm(prev => !prev);
+  }, []);
+  
+  // Reset showForm when isOptimized changes
+  useEffect(() => {
+    // When optimization completed, hide the form
+    if (isOptimized) {
+      setShowForm(false);
+    } else {
+      // When optimization is reset, always show the form
+      setShowForm(true);
+    }
+  }, [isOptimized]);
 
   const handleToggleItem = useCallback((itemId: string) => {
     setOptimizedItems(prevItems =>
@@ -141,13 +173,21 @@ export default function HomePage() {
   const handleDeleteItem = useCallback((itemId: string) => {
     setOptimizedItems(prevItems => prevItems.filter(item => item.id !== itemId));
   }, []);
-
-  const handleReset = useCallback(() => {
-    setOptimizedItems([]);
-    setIsOptimized(false);
-    setRawText('');
-    setError(null);
-  }, []);
+  
+  // Check if all items are purchased and auto-reset after a delay
+  useEffect(() => {
+    if (optimizedItems.length > 0 && optimizedItems.every(item => item.purchased)) {
+      // Wait 3 seconds to show the congratulations message before resetting
+      const timer = setTimeout(() => {
+        // Only auto-reset if all items are still purchased after the delay
+        if (optimizedItems.every(item => item.purchased)) {
+          handleReset();
+        }
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [optimizedItems, handleReset]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -173,83 +213,123 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Индикатор загрузки */}
-        {isLoading && (
-          <div className="text-center py-4">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-            <p className="mt-2 text-gray-600">Оптимизируем ваш список покупок...</p>
-          </div>
-        )}
+        {/* Loading indicator removed - now handled by ShoppingListForm component */}
         
-        {/* Форма ввода */}
-        <div>
-          <ShoppingListForm
-            rawText={rawText}
-            setRawText={setRawText}
-            onOptimize={handleOptimize}
-            isOptimized={isOptimized}
-            userId={userId}
-            setUserId={setUserId}
-            listName={listName}
-            setListName={setListName}
-            availableStores={availableStores}
-            onAddStore={handleAddStore}
-            selectedStoreId={selectedStoreId}
-            setSelectedStoreId={setSelectedStoreId}
-          />
-        </div>
+        <AnimatePresence mode="wait">
+          {/* Форма ввода - показываем когда не оптимизировано, явно запрошено или при загрузке */}
+          {(showForm || isLoading) && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.4 }}
+              key="shopping-form"
+              className="mb-8"
+            >
+              <ShoppingListForm
+                rawText={rawText}
+                setRawText={setRawText}
+                onOptimize={handleOptimize}
+                isOptimized={isOptimized}
+                userId={userId}
+                setUserId={setUserId}
+                listName={listName}
+                setListName={setListName}
+                availableStores={availableStores}
+                onAddStore={handleAddStore}
+                selectedStoreId={selectedStoreId}
+                setSelectedStoreId={setSelectedStoreId}
+                isLoading={isLoading}
+                onReset={handleReset}
+              />
+            </motion.div>
+          )}
+  
+          {/* Оптимизированный список */}
+          {isOptimized && optimizedItems.length > 0 && !isLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              key="optimized-list"
+            >
+              <OptimizedListView
+                items={optimizedItems}
+                storeType={availableStores.find(s => s.id === selectedStoreId)?.name || selectedStoreId as any}
+                onToggleItem={handleToggleItem}
+                onDeleteItem={handleDeleteItem}
+                onReset={handleReset}
+                isAIProcessed={isAIProcessed}
+                onToggleForm={toggleFormVisibility}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Оптимизированный список */}
-        {isOptimized && optimizedItems.length > 0 && !isLoading && (
-          <div>
-            <OptimizedListView
-              items={optimizedItems}
-              storeType={availableStores.find(s => s.id === selectedStoreId)?.name || selectedStoreId as any}
-              onToggleItem={handleToggleItem}
-              onDeleteItem={handleDeleteItem}
-              onReset={handleReset}
-              isAIProcessed={isAIProcessed}
-            />
-          </div>
-        )}
-
-        {/* Пустое состояние */}
-        {isOptimized && optimizedItems.length === 0 && !isLoading && (
-          <div className="text-center py-12">
-            <div className="text-gray-500 text-lg">
-              Список покупок пуст. Добавьте товары для оптимизации маршрута.
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {/* Пустое состояние */}
+          {isOptimized && optimizedItems.length === 0 && !isLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              key="empty-state"
+              className="text-center py-12"
+            >
+              <div className="text-gray-500 text-lg">
+                Список покупок пуст. Добавьте товары для оптимизации маршрута.
+              </div>
+              <Button 
+                onClick={handleReset}
+                variant="outline"
+                className="mt-4 border-blue-500 text-blue-600 hover:bg-blue-50"
+              >
+                <ListPlus className="h-5 w-5 mr-2" />
+                Создать новый список
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Информационные карточки */}
-        {!isOptimized && !isLoading && (
-          <div className="grid md:grid-cols-3 gap-6 mt-12">
-            <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-              <div className="text-blue-600 text-2xl mb-3">🛒</div>
-              <h3 className="font-semibold text-lg mb-2">Простой ввод</h3>
-              <p className="text-gray-600 text-sm">
-                Вставьте список покупок из любого источника - Telegram, SMS, заметок
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-              <div className="text-green-600 text-2xl mb-3">🗺️</div>
-              <h3 className="font-semibold text-lg mb-2">Умная оптимизация</h3>
-              <p className="text-gray-600 text-sm">
-                Автоматическая группировка товаров по категориям и оптимальный маршрут
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-              <div className="text-purple-600 text-2xl mb-3">📱</div>
-              <h3 className="font-semibold text-lg mb-2">Мобильная версия</h3>
-              <p className="text-gray-600 text-sm">
-                Удобное использование на телефоне прямо в магазине
-              </p>
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {!isOptimized && !isLoading && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              key="info-cards"
+              className="grid md:grid-cols-3 gap-6 mt-12"
+            >
+              <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+                <div className="text-blue-600 text-2xl mb-3">🛒</div>
+                <h3 className="font-semibold text-lg mb-2">Простой ввод</h3>
+                <p className="text-gray-600 text-sm">
+                  Вставьте список покупок из любого источника - Telegram, SMS, заметок
+                </p>
+              </div>
+              
+              <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+                <div className="text-green-600 text-2xl mb-3">🗺️</div>
+                <h3 className="font-semibold text-lg mb-2">Умная оптимизация</h3>
+                <p className="text-gray-600 text-sm">
+                  Автоматическая группировка товаров по категориям и оптимальный маршрут
+                </p>
+              </div>
+              
+              <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+                <div className="text-purple-600 text-2xl mb-3">📱</div>
+                <h3 className="font-semibold text-lg mb-2">Мобильная версия</h3>
+                <p className="text-gray-600 text-sm">
+                  Удобное использование на телефоне прямо в магазине
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Подвал */}

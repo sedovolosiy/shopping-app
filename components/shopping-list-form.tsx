@@ -29,6 +29,8 @@ interface ShoppingListFormProps {
   setListName: (listName: string) => void;
   availableStores: Store[]; // Added prop for available stores
   onAddStore: (storeName: string) => Promise<Store | null>; // Added prop to handle adding a new store
+  isLoading?: boolean; // Added to show spinner while waiting for server response
+  onReset?: () => void; // Added to handle "New List" functionality
 }
 
 const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
@@ -44,6 +46,8 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
   setListName,
   availableStores,
   onAddStore,
+  isLoading = false,
+  onReset,
 }) => {
   const [newStoreName, setNewStoreName] = React.useState('');
   const [isAddingStore, setIsAddingStore] = React.useState(false);
@@ -90,17 +94,35 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-lg hover:shadow-xl transition-shadow duration-300">
-      <CardHeader className="text-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-lg">
-        <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-          <ShoppingCart className="h-6 w-6" />
-          {/* TODO: Localize this title based on user preferences */}
-          Оптимизатор списка покупок
-        </CardTitle>
-        <CardDescription className="text-blue-100">
-          {/* TODO: Localize this description */}
-          Введите список товаров и выберите магазин для оптимального маршрута
-        </CardDescription>
-      </CardHeader>
+      {/* Hide the header when loading/optimizing */}
+      {!isLoading && (
+        <CardHeader className="text-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-lg">
+          <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+            <ShoppingCart className="h-6 w-6" />
+            {/* TODO: Localize this title based on user preferences */}
+            Оптимизатор списка покупок
+          </CardTitle>
+          <CardDescription className="text-blue-100">
+            {/* TODO: Localize this description */}
+            Введите список товаров и выберите магазин для оптимального маршрута
+          </CardDescription>
+        </CardHeader>
+      )}
+      
+      {/* Show spinner when loading */}
+      {isLoading && (
+        <CardHeader className="text-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-lg">
+          <div className="flex flex-col items-center justify-center py-6">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-white mb-4"></div>
+            <CardTitle className="text-xl">
+              Оптимизируем ваш маршрут...
+            </CardTitle>
+            <CardDescription className="text-blue-100">
+              Пожалуйста, подождите
+            </CardDescription>
+          </div>
+        </CardHeader>
+      )}
       
       <CardContent className="space-y-6 p-6">
         {/* User Identifier Input - Simple version for now */}
@@ -218,14 +240,42 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
           </div>
         </div>
 
-        <Button
-          onClick={() => onOptimize(userId, listName)}
-          disabled={!rawText.trim() || !selectedStoreId || !userId.trim()} // Changed to selectedStoreId
-          className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
-        >
-          {/* TODO: Localize button text based on isOptimized and user language */}
-          {isOptimized ? 'Обновить маршрут' : 'Оптимизировать маршрут'}
-        </Button>
+        {/* Show the appropriate buttons based on state */}
+        <div className="flex flex-col gap-3">
+          {/* Optimize button - hide when loading */}
+          {!isLoading && (
+            <Button
+              onClick={() => onOptimize(userId, listName)}
+              disabled={!rawText.trim() || !selectedStoreId || !userId.trim()} // Changed to selectedStoreId
+              className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
+            >
+              {/* TODO: Localize button text based on isOptimized and user language */}
+              {isOptimized ? 'Обновить маршрут' : 'Оптимизировать маршрут'}
+            </Button>
+          )}
+          
+          {/* New List button - show only after optimization */}
+          {isOptimized && !isLoading && onReset && (
+            <Button
+              onClick={onReset}
+              variant="outline"
+              className="w-full h-10 text-base font-medium border-blue-500 text-blue-600 hover:bg-blue-50"
+            >
+              Новый список
+            </Button>
+          )}
+          
+          {/* Spinner button - replaces the optimize button when loading */}
+          {isLoading && (
+            <Button 
+              disabled
+              className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-green-500 to-emerald-600 opacity-70"
+            >
+              <div className="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-3"></div>
+              Оптимизация...
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

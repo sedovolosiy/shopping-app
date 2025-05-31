@@ -7,7 +7,7 @@ import { ShoppingItem, StoreType } from '@/lib/types';
 import { groupItemsByCategory, getCategoryOrder, STORE_CONFIGS } from '@/lib/store-data';
 import CategoryGroup from './category-group';
 import { motion } from 'framer-motion';
-import { Route, RotateCcw, CheckCircle2, Circle, ChevronsUpDown } from 'lucide-react';
+import { Route, RotateCcw, CheckCircle2, Circle, ChevronsUpDown, Edit, ListPlus } from 'lucide-react';
 import { AITag } from './ai-status';
 
 interface OptimizedListViewProps {
@@ -17,6 +17,7 @@ interface OptimizedListViewProps {
   onDeleteItem?: (itemId: string) => void;
   onReset: () => void;
   isAIProcessed?: boolean;
+  onToggleForm?: () => void; // Add ability to toggle form visibility
 }
 
 const OptimizedListView: React.FC<OptimizedListViewProps> = ({
@@ -25,7 +26,8 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
   onToggleItem,
   onDeleteItem,
   onReset,
-  isAIProcessed = false
+  isAIProcessed = false,
+  onToggleForm
 }) => {
   const [expandAll, setExpandAll] = useState<boolean>(true);
   
@@ -74,6 +76,17 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
                 <ChevronsUpDown className="h-4 w-4 mr-2" />
                 {expandAll ? 'Свернуть все' : 'Развернуть все'}
               </Button>
+              {onToggleForm && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onToggleForm}
+                  className="text-indigo-600 border-white hover:bg-white hover:text-indigo-700"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Изменить список
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
@@ -121,10 +134,25 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5 }}
-              className="mt-4 p-3 bg-green-500 rounded-lg text-center"
+              className="mt-4 p-4 bg-green-500 rounded-lg text-center"
             >
-              <CheckCircle2 className="h-6 w-6 mx-auto mb-2" />
-              <p className="font-semibold">Поздравляем! Все товары куплены!</p>
+              <motion.div 
+                initial={{ scale: 1 }}
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ repeat: 2, duration: 0.7 }}
+              >
+                <CheckCircle2 className="h-8 w-8 mx-auto mb-2" />
+              </motion.div>
+              <p className="font-semibold text-lg mb-3">Поздравляем! Все товары куплены!</p>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={onReset}
+                className="mt-2 bg-white text-green-700 hover:bg-green-50 border-white font-medium"
+              >
+                <ListPlus className="h-5 w-5 mr-2" />
+                Новый список
+              </Button>
             </motion.div>
           )}
         </CardContent>

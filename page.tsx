@@ -1,42 +1,38 @@
-// app/page.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import ShoppingListForm from '@/components/shopping-list-form';
-import OptimizedListView from '@/components/optimized-list-view';
-import { StoreType as DeprecatedStoreType, ShoppingList, ListItem as PrismaListItem, UserPreferences } from '@/lib/types'; // Renamed StoreType to avoid future conflicts if it was a string literal
-import { Toaster } from "@/components/ui/toaster"
-import { useToast } from "@/components/ui/use-toast"
+import React from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
+import { ArrowRight, ShoppingCart, BarChart4, Sparkles, Store, Menu } from 'lucide-react';
 
-// Define a type for the store object fetched from the API
-interface Store {
-  id: string;
-  name: string;
-  // Add any other relevant store properties if needed
-}
-
-// Interface for the structure of a shopping list item as returned by the API
-interface ApiListItem extends PrismaListItem {}
-
-// Interface for the structure of a shopping list as returned by the API
-interface ApiShoppingList extends Omit<ShoppingList, 'items'> {
-  items: ApiListItem[];
-}
-
-export default function HomePage() {
-  const [rawText, setRawText] = useState('');
-  const [selectedStoreId, setSelectedStoreId] = useState<string>('');
-  const [isOptimized, setIsOptimized] = useState(false);
-  const [optimizedItems, setOptimizedItems] = useState<ApiListItem[]>([]);
-  const [userId, setUserId] = useState<string>('guest-user'); // Default or load from auth
-  const [listName, setListName] = useState<string>('');
-  const [userShoppingLists, setUserShoppingLists] = useState<ApiShoppingList[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
+export default function LandingPage() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-100">
+      {/* Navigation */}
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <ShoppingCart className="h-6 w-6 text-indigo-600" />
+            <span className="font-bold text-xl text-gray-900">Shopping Optimizer</span>
+          </div>
+          <div className="hidden md:flex items-center gap-6">
+            <Link href="#features" className="text-gray-600 hover:text-indigo-600">Возможности</Link>
+            <Link href="#how-it-works" className="text-gray-600 hover:text-indigo-600">Как это работает</Link>
+            <Link href="#stores" className="text-gray-600 hover:text-indigo-600">Магазины</Link>
+            <Button asChild>
+              <Link href="/app">
+                Начать использовать
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+          <div className="md:hidden">
+            <Button variant="ghost" size="icon">
+              <Menu className="h-6 w-6" />
+            </Button>
+          </div>
+        </div>
+      </header>
 
   const [availableStores, setAvailableStores] = useState<Store[]>([]);
   const [userLanguage, setUserLanguage] = useState<string>('en'); // Default language

@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 // Assuming StoreType might be different from the Store interface expected by ShoppingListForm
 // import { ShoppingItem, StoreType } from '@/lib/types'; 
 import { ShoppingItem } from '@/lib/types'; // Keep ShoppingItem if used by OptimizedListView
 import { processShoppingList } from '@/lib/store-data';
 import ShoppingListForm from '@/components/shopping-list-form';
 import OptimizedListView from '@/components/optimized-list-view';
+import AIStatus from '@/components/ai-status';
 
 // Define the Store interface expected by ShoppingListForm and for availableStores
 interface Store {
@@ -16,9 +17,11 @@ interface Store {
 
 export default function HomePage() {
   const [rawText, setRawText] = useState<string>('');
-  // const [selectedStore, setSelectedStore] = useState<StoreType>('lidl'); // Old store state
   const [optimizedItems, setOptimizedItems] = useState<ShoppingItem[]>([]);
   const [isOptimized, setIsOptimized] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isAIProcessed, setIsAIProcessed] = useState<boolean>(false);
 
   // New state variables required by ShoppingListForm
   const [userId, setUserId] = useState<string>('guest-user-app-app'); // Default or load from auth
@@ -26,33 +29,104 @@ export default function HomePage() {
   const [availableStores, setAvailableStores] = useState<Store[]>([]); // Initialize as empty array
   const [selectedStoreId, setSelectedStoreId] = useState<string>(''); // For the Select component in the form
 
-  // Placeholder for onAddStore, actual implementation would involve an API call
-  const handleAddStore = useCallback(async (storeName: string): Promise<Store | null> => {
-    console.log('Attempting to add store:', storeName);
-    // In a real scenario, you'd make an API call here:
-    // const newStore = await api.addStore(storeName);
-    // setAvailableStores(prev => [...prev, newStore]);
-    // setSelectedStoreId(newStore.id);
-    // For now, returning a mock store or null
-    const mockNewStore = { id: Date.now().toString(), name: storeName };
-    setAvailableStores(prev => [...prev, mockNewStore]);
-    setSelectedStoreId(mockNewStore.id);
-    return mockNewStore;
-    // return null; 
+  // Load available stores on component mount
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        // Import here to avoid circular dependencies
+        const { getStores } = await import('@/lib/api-client');
+        
+        const stores = await getStores();
+        setAvailableStores(stores);
+        
+        // If there are stores available, select the first one by default
+        if (stores.length > 0) {
+          setSelectedStoreId(stores[0].id);
+        }
+      } catch (error) {
+        console.error('Error fetching stores:', error);
+        // Create some default stores if API fails
+        const defaultStores = [
+          { id: 'lidl', name: 'Lidl' },
+          { id: 'biedronka', name: 'Biedronka' },
+          { id: 'aldi', name: 'Aldi' }
+        ];
+        setAvailableStores(defaultStores);
+        setSelectedStoreId(defaultStores[0].id);
+      }
+    };
+    
+    fetchStores();
   }, []);
 
-  const handleOptimize = useCallback((currentUserId?: string, currentListName?: string) => { // Modified to accept userId and listName
+  // Implementation for onAddStore with API client
+  const handleAddStore = useCallback(async (storeName: string): Promise<Store | null> => {
+    console.log('Attempting to add store:', storeName);
+    try {
+      // Import here to avoid circular dependencies
+      const { addStore } = await import('@/lib/api-client');
+      
+      const newStore = await addStore(storeName);
+      setAvailableStores(prev => [...prev, newStore]);
+      setSelectedStoreId(newStore.id);
+      return newStore;
+    } catch (error) {
+      console.error('Error adding store:', error);
+      // As a fallback, create a mock store with clientside ID
+      const mockNewStore = { id: `mock-${Date.now()}`, name: storeName };
+      setAvailableStores(prev => [...prev, mockNewStore]);
+      setSelectedStoreId(mockNewStore.id);
+      return mockNewStore;
+    }
+  }, []);
+
+  const handleOptimize = useCallback(async (currentUserId?: string, currentListName?: string) => {
     if (!rawText.trim()) return;
     
-    // The processShoppingList might need to be updated if it depends on the old selectedStore type
-    // For now, we'll assume it can work or will be adapted.
-    // It also doesn't use currentUserId or currentListName yet.
-    const storeForProcessing = availableStores.find(s => s.id === selectedStoreId)?.name || 'default';
-    const processedItems = processShoppingList(rawText, storeForProcessing as any); // Cast needed if StoreType is different
-    setOptimizedItems(processedItems);
-    setIsOptimized(true);
-    console.log('Optimizing for user:', currentUserId, 'List name:', currentListName);
-  }, [rawText, selectedStoreId, availableStores]);
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Import here to avoid circular dependencies
+      const { processShoppingListWithAPI } = await import('@/lib/api-client');
+      
+      // Try to use the API for processing (with AI if available)
+      const apiResponse = await processShoppingListWithAPI(
+        rawText,
+        currentUserId || userId,
+        currentListName || listName,
+        selectedStoreId
+      );
+      
+      // API returns items in the correct format
+      setOptimizedItems(apiResponse.items);
+      setIsOptimized(true);
+      
+      // Update AI processing status
+      // Check if metadata exists and has processedWith
+      const wasAIProcessed = apiResponse.metadata && apiResponse.metadata.processedWith === 'ai';
+      setIsAIProcessed(Boolean(wasAIProcessed));
+      
+      // Check if AI was used and show a message if not
+      if (!wasAIProcessed) {
+        setError("AI processing wasn't available. Using basic categorization instead.");
+      }
+      
+      console.log(`List optimized using ${wasAIProcessed ? 'AI' : 'local processing'}`);
+    } catch (error) {
+      console.error("Error calling optimization API:", error);
+      setError("Could not process your list online. Using local processing instead.");
+      
+      // Fallback to completely local processing if API fails
+      const storeForProcessing = availableStores.find(s => s.id === selectedStoreId)?.name || 'default';
+      const processedItems = processShoppingList(rawText, storeForProcessing as any);
+      setOptimizedItems(processedItems);
+      setIsOptimized(true);
+      setIsAIProcessed(false);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [rawText, selectedStoreId, availableStores, userId, listName]);
 
   const handleToggleItem = useCallback((itemId: string) => {
     setOptimizedItems(prevItems =>
@@ -68,6 +142,7 @@ export default function HomePage() {
     setOptimizedItems([]);
     setIsOptimized(false);
     setRawText('');
+    setError(null);
   }, []);
 
   return (
@@ -84,17 +159,31 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-8">
+      <main className="container mx-auto px-4 py-8 space-y-8 relative">
+        <AIStatus isActive={isAIProcessed} aiModel="Gemini" />
+        
+        {/* Сообщение об ошибке */}
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md">
+            <p className="text-red-700">{error}</p>
+          </div>
+        )}
+
+        {/* Индикатор загрузки */}
+        {isLoading && (
+          <div className="text-center py-4">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+            <p className="mt-2 text-gray-600">Оптимизируем ваш список покупок...</p>
+          </div>
+        )}
+        
         {/* Форма ввода */}
         <div>
           <ShoppingListForm
             rawText={rawText}
             setRawText={setRawText}
-            // selectedStore={selectedStore} // Prop not used by current form
-            // setSelectedStore={setSelectedStore} // Prop not used by current form
             onOptimize={handleOptimize}
             isOptimized={isOptimized}
-            // Pass new required props
             userId={userId}
             setUserId={setUserId}
             listName={listName}
@@ -107,19 +196,20 @@ export default function HomePage() {
         </div>
 
         {/* Оптимизированный список */}
-        {isOptimized && optimizedItems.length > 0 && (
+        {isOptimized && optimizedItems.length > 0 && !isLoading && (
           <div>
             <OptimizedListView
               items={optimizedItems}
-              storeType={availableStores.find(s => s.id === selectedStoreId)?.name || selectedStoreId as any} // Adapting for OptimizedListView
+              storeType={availableStores.find(s => s.id === selectedStoreId)?.name || selectedStoreId as any}
               onToggleItem={handleToggleItem}
               onReset={handleReset}
+              isAIProcessed={isAIProcessed}
             />
           </div>
         )}
 
         {/* Пустое состояние */}
-        {isOptimized && optimizedItems.length === 0 && (
+        {isOptimized && optimizedItems.length === 0 && !isLoading && (
           <div className="text-center py-12">
             <div className="text-gray-500 text-lg">
               Список покупок пуст. Добавьте товары для оптимизации маршрута.
@@ -128,7 +218,7 @@ export default function HomePage() {
         )}
 
         {/* Информационные карточки */}
-        {!isOptimized && (
+        {!isOptimized && !isLoading && (
           <div className="grid md:grid-cols-3 gap-6 mt-12">
             <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
               <div className="text-blue-600 text-2xl mb-3">🛒</div>

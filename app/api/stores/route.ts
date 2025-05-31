@@ -1,6 +1,6 @@
 // app/api/stores/route.ts
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { z } from 'zod';
 
 export async function GET() {

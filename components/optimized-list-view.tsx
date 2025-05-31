@@ -8,19 +8,22 @@ import { groupItemsByCategory, getCategoryOrder, STORE_CONFIGS } from '@/lib/sto
 import CategoryGroup from './category-group';
 import { motion } from 'framer-motion';
 import { Route, RotateCcw, CheckCircle2, Circle } from 'lucide-react';
+import { AITag } from './ai-status';
 
 interface OptimizedListViewProps {
   items: ShoppingItem[];
   storeType: StoreType;
   onToggleItem: (itemId: string) => void;
   onReset: () => void;
+  isAIProcessed?: boolean;
 }
 
 const OptimizedListView: React.FC<OptimizedListViewProps> = ({
   items,
   storeType,
   onToggleItem,
-  onReset
+  onReset,
+  isAIProcessed = false
 }) => {
   const groupedItems = groupItemsByCategory(items);
   const categoryOrder = getCategoryOrder(storeType);
@@ -51,6 +54,7 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
               <Route className="h-6 w-6" />
               {/* Add a check for storeConfig before accessing displayName */}
               <span>Оптимальный маршрут для {storeConfig ? storeConfig.displayName : storeType}</span>
+              {isAIProcessed && <AITag isActive={true} />}
             </div>
             <Button
               variant="outline"

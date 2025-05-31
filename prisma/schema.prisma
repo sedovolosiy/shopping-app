@@ -7,11 +7,32 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+model User {
+    id           String          @id @default(cuid())
+    identifier   String          @unique // Email or other unique identifier
+    shoppingLists ShoppingList[]
+    preferences   UserPreferences?
+    createdAt    DateTime       @default(now())
+    updatedAt    DateTime       @updatedAt
+}
+
+model UserPreferences {
+    id        String   @id @default(cuid())
+    language  String   @default("en")
+    userId    String   @unique
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
 model ShoppingList {
     id        String   @id @default(cuid())
     name      String
     storeType String
     rawText   String
+    rawInput  String?  // Additional field for original input
+    userId    String?  // Add userId field
+    user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
     items     ShoppingListItem[]
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -20,12 +41,23 @@ model ShoppingList {
 model ShoppingListItem {
     id             String       @id @default(cuid())
     name           String
+    normalizedText String?      // Add normalized text field
     category       String
     categoryOrder  Int
+    quantity       String?      // Add quantity field
+    unit           String?      // Add unit field
+    language       String?      // Add language field
     purchased      Boolean      @default(false)
     originalText   String
     shoppingListId String
     shoppingList   ShoppingList @relation(fields: [shoppingListId], references: [id], onDelete: Cascade)
     createdAt      DateTime     @default(now())
     updatedAt      DateTime     @updatedAt
+}
+
+model Store {
+    id        String   @id @default(cuid())
+    name      String   @unique
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }

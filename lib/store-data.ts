@@ -357,13 +357,16 @@ export function processShoppingList(rawText: string, storeType: string): Shoppin
       language = cyrillicCount > latinCount ? 'ru' : 'en';
     }
     
+    // Экранируем двойные кавычки для JSON
+    const processedItem = item.replace(/"/g, '\\"');
+    
     return {
       id: `item-${index}`,
-      name: item,
+      name: processedItem,
       category: 'Не категоризировано', // Временная категория до обработки через AI
       categoryOrder: 999,
       purchased: false,
-      originalText: item,
+      originalText: processedItem,
       language
     };
   });

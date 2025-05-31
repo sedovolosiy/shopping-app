@@ -226,8 +226,14 @@ ${rawText}
       // Исправление кавычек в именах свойств
       cleanedJsonString = cleanedJsonString.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
       
-      // Исправление кавычек внутри значений свойств
-      cleanedJsonString = cleanedJsonString.replace(/"([^"]*)""/g, '"$1\\"');
+      // Исправление кавычек внутри значений свойств - более надежное решение
+      // Находим строки и правильно экранируем кавычки внутри них
+      cleanedJsonString = cleanedJsonString.replace(/"(.*?)"/g, function(match, content) {
+        // Экранируем внутренние кавычки, но не трогаем уже экранированные
+        let result = content.replace(/(?<!\\)"/g, '\\"');
+        // Возвращаем строку с кавычками
+        return '"' + result + '"';
+      });
       
       // Дополнительная обработка вложенных объектов с кавычками
       cleanedJsonString = cleanedJsonString.replace(/"{/g, '{').replace(/}"/g, '}');

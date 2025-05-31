@@ -1,6 +1,9 @@
 import { StoreConfigs, CategoryDefinition, ShoppingItem, StoreType } from './types';
 
 // Конфигурации магазинов с категориями и ключевыми словами
+// ВАЖНО: Эта структура используется только для отображения категорий и 
+// как резервная система категоризации, если API Gemini недоступен.
+// Основная категоризация товаров должна выполняться через API Gemini.
 export const STORE_CONFIGS: StoreConfigs = {
   lidl: {
     name: 'lidl',
@@ -275,13 +278,16 @@ export const STORE_CONFIGS: StoreConfigs = {
 };
 
 // Функция для определения категории товара
+// ВНИМАНИЕ: Эта функция должна использоваться только как fallback
+// Категоризацию товаров должен выполнять AI через API Gemini
+// Данная функция сохранена для обратной совместимости и аварийных ситуаций
 export function categorizeItem(itemName: string, storeType: string): { category: string; categoryOrder: number } {
   const normalizedStoreType = storeType.toLowerCase();
   const storeConfig = STORE_CONFIGS[normalizedStoreType as keyof typeof STORE_CONFIGS]; 
   
   if (!storeConfig) {
     return {
-      category: `Разное (Нет данных для магазина '${storeType}')`, // Используем оригинальный storeType для сообщения
+      category: `Не категоризировано`, // Более нейтральное сообщение
       categoryOrder: 999
     };
   }
@@ -289,8 +295,9 @@ export function categorizeItem(itemName: string, storeType: string): { category:
 
   const normalizedItem = itemName.toLowerCase().trim();
   
+  // Для предварительного отображения можем использовать простое совпадение по ключевым словам,
+  // но окончательная категоризация должна выполняться через AI
   for (const category of storeConfig.categories) {
-    // It's good practice to also check if category.keywords is an array, though type system should ensure this.
     if (category && Array.isArray(category.keywords)) { 
       for (const keyword of category.keywords) {
         if (normalizedItem.includes(keyword.toLowerCase())) {
@@ -303,14 +310,16 @@ export function categorizeItem(itemName: string, storeType: string): { category:
     }
   }
   
-  // Если категория не найдена, помещаем в "Разное"
+  // Если категория не найдена
   return {
-    category: 'Разное',
+    category: 'Не категоризировано',
     categoryOrder: 999
   };
 }
 
 // Функция для обработки списка покупок
+// Это только резервный метод, предназначенный для использования, когда API Gemini недоступен
+// Категоризация должна происходить через AI, а не локально
 export function processShoppingList(rawText: string, storeType: string): ShoppingItem[] {
   // Normalize different separators to newline
   // 1. Replace commas (with optional surrounding spaces) with newlines
@@ -321,30 +330,28 @@ export function processShoppingList(rawText: string, storeType: string): Shoppin
     .map(line => line.trim())
     .filter(line => line !== '');
 
-  // DO NOT further split lines that might contain multiple space-separated items
-  // Each line should be treated as a single item since AI handles the parsing
+  // Не разбиваем строки дальше - это должен делать AI
+  // Обрабатываем каждую строку как отдельный товар
   const finalItems: string[] = [];
   initialLines.forEach(line => {
-    // No longer splitting by spaces - each line is a single shopping item
-    // This allows multi-word items to remain intact, e.g. "ice cream" or "red peppers"
-    // AI will handle splitting of lines like "Носки сосиски ser zloty" into separate products
+    // Сохраняем строки целиком без разбиения по пробелам
     if (line.trim() !== '') {
       finalItems.push(line.trim());
     }
   });
   
-  const categorizedItems = finalItems.map((item, index) => {
-    const { category, categoryOrder } = categorizeItem(item, storeType); // categorizeItem теперь сам обработает storeType
-    
-    // Detect language based on character set
+  // Создаем базовые объекты без категоризации, 
+  // так как категоризацию должен выполнять AI через API Gemini
+  const uncategorizedItems = finalItems.map((item, index) => {
+    // Определяем только язык для правильного отображения
     const hasCyrillic = /[\u0400-\u04FF]/.test(item);
     const hasLatin = /[a-zA-Z]/.test(item);
     
-    let language = 'en'; // Default to English
+    let language = 'en'; // По умолчанию английский
     if (hasCyrillic && !hasLatin) {
       language = 'ru';
     } else if (hasCyrillic && hasLatin) {
-      // Mixed text, determine by predominant characters
+      // Смешанный текст, определяем по преобладающим символам
       const cyrillicCount = (item.match(/[\u0400-\u04FF]/g) || []).length;
       const latinCount = (item.match(/[a-zA-Z]/g) || []).length;
       language = cyrillicCount > latinCount ? 'ru' : 'en';
@@ -353,15 +360,15 @@ export function processShoppingList(rawText: string, storeType: string): Shoppin
     return {
       id: `item-${index}`,
       name: item,
-      category,
-      categoryOrder,
+      category: 'Не категоризировано', // Временная категория до обработки через AI
+      categoryOrder: 999,
       purchased: false,
       originalText: item,
       language
     };
   });
   
-  return categorizedItems;
+  return uncategorizedItems;
 }
 
 // Функция для группировки товаров по категориям

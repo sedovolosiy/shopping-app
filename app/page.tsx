@@ -137,6 +137,10 @@ export default function HomePage() {
       )
     );
   }, []);
+  
+  const handleDeleteItem = useCallback((itemId: string) => {
+    setOptimizedItems(prevItems => prevItems.filter(item => item.id !== itemId));
+  }, []);
 
   const handleReset = useCallback(() => {
     setOptimizedItems([]);
@@ -202,6 +206,7 @@ export default function HomePage() {
               items={optimizedItems}
               storeType={availableStores.find(s => s.id === selectedStoreId)?.name || selectedStoreId as any}
               onToggleItem={handleToggleItem}
+              onDeleteItem={handleDeleteItem}
               onReset={handleReset}
               isAIProcessed={isAIProcessed}
             />

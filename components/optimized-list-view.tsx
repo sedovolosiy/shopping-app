@@ -1,19 +1,20 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShoppingItem, StoreType } from '@/lib/types';
 import { groupItemsByCategory, getCategoryOrder, STORE_CONFIGS } from '@/lib/store-data';
 import CategoryGroup from './category-group';
 import { motion } from 'framer-motion';
-import { Route, RotateCcw, CheckCircle2, Circle } from 'lucide-react';
+import { Route, RotateCcw, CheckCircle2, Circle, ChevronsUpDown } from 'lucide-react';
 import { AITag } from './ai-status';
 
 interface OptimizedListViewProps {
   items: ShoppingItem[];
   storeType: StoreType;
   onToggleItem: (itemId: string) => void;
+  onDeleteItem?: (itemId: string) => void;
   onReset: () => void;
   isAIProcessed?: boolean;
 }
@@ -22,9 +23,12 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
   items,
   storeType,
   onToggleItem,
+  onDeleteItem,
   onReset,
   isAIProcessed = false
 }) => {
+  const [expandAll, setExpandAll] = useState<boolean>(true);
+  
   const groupedItems = groupItemsByCategory(items);
   const categoryOrder = getCategoryOrder(storeType);
   const storeConfig = STORE_CONFIGS[storeType as keyof typeof STORE_CONFIGS]; // Added type assertion
@@ -39,6 +43,10 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
   const totalItems = items.length;
   const completedItems = items.filter(item => item.purchased).length;
   const completionPercentage = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+
+  const toggleExpandAll = () => {
+    setExpandAll(!expandAll);
+  };
 
   if (items.length === 0) {
     return null;
@@ -56,15 +64,26 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
               <span>Оптимальный маршрут для {storeConfig ? storeConfig.displayName : storeType}</span>
               {isAIProcessed && <AITag isActive={true} />}
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onReset}
-              className="text-indigo-600 border-white hover:bg-white hover:text-indigo-700"
-            >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Сбросить
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleExpandAll}
+                className="text-indigo-600 border-white hover:bg-white hover:text-indigo-700"
+              >
+                <ChevronsUpDown className="h-4 w-4 mr-2" />
+                {expandAll ? 'Свернуть все' : 'Развернуть все'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onReset}
+                className="text-indigo-600 border-white hover:bg-white hover:text-indigo-700"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Сбросить
+              </Button>
+            </div>
           </CardTitle>
           <CardDescription className="text-indigo-100">
             Следуйте порядку категорий для эффективного похода по магазину
@@ -120,7 +139,10 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
             items={groupedItems[categoryName]}
             storeType={storeType}
             onToggleItem={onToggleItem}
+            onDeleteItem={onDeleteItem}
             categoryIndex={index}
+            isExpanded={expandAll}
+            onToggleExpand={() => {}} // Empty function since we're controlling from parent
           />
         ))}
       </div>

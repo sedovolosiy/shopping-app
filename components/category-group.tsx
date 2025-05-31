@@ -1,20 +1,24 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingItem, StoreType } from '@/lib/types';
 import { getCategoryIcon } from '@/lib/store-data';
 import ListItemEntry from './list-item-entry';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface CategoryGroupProps {
   categoryName: string;
   items: ShoppingItem[];
   storeType: StoreType;
   onToggleItem: (itemId: string) => void;
+  onDeleteItem?: (itemId: string) => void;
   categoryIndex: number;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
 const CategoryGroup: React.FC<CategoryGroupProps> = ({
@@ -22,14 +26,32 @@ const CategoryGroup: React.FC<CategoryGroupProps> = ({
   items,
   storeType,
   onToggleItem,
-  categoryIndex
+  onDeleteItem,
+  categoryIndex,
+  isExpanded: externalIsExpanded,
+  onToggleExpand: externalToggleExpand
 }) => {
+  // Use internal state if external state is not provided
+  const [internalIsExpanded, setInternalIsExpanded] = useState<boolean>(true);
+  
+  // Use the external state if provided, otherwise use internal state
+  const isExpanded = externalIsExpanded !== undefined ? externalIsExpanded : internalIsExpanded;
+  
   const iconName = getCategoryIcon(categoryName, storeType);
   const IconComponent = (Icons as any)[iconName] || Icons.Package;
   
   const completedCount = items.filter(item => item.purchased).length;
   const totalCount = items.length;
   const completionPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
+  const toggleExpand = () => {
+    // Use external toggle if provided, otherwise use internal state
+    if (externalToggleExpand) {
+      externalToggleExpand();
+    } else {
+      setInternalIsExpanded(!internalIsExpanded);
+    }
+  };
 
   return (
     <motion.div
@@ -38,13 +60,29 @@ const CategoryGroup: React.FC<CategoryGroupProps> = ({
       transition={{ delay: categoryIndex * 0.1, duration: 0.4 }}
     >
       <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 border-l-4 border-l-blue-500">
-        <CardHeader className="pb-3">
+        <CardHeader 
+          className="pb-3 cursor-pointer"
+          onClick={toggleExpand}
+        >
           <CardTitle className="flex items-center justify-between text-lg">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <IconComponent className="h-5 w-5 text-blue-600" />
               </div>
               <span className="font-semibold text-gray-800">{categoryName}</span>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleExpand();
+                }}
+                className="ml-2 p-1 rounded-full hover:bg-gray-200"
+              >
+                {isExpanded ? (
+                  <ChevronUp className="h-4 w-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                )}
+              </button>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">
@@ -64,16 +102,28 @@ const CategoryGroup: React.FC<CategoryGroupProps> = ({
           </CardTitle>
         </CardHeader>
         
-        <CardContent className="space-y-2">
-          {items.map((item, index) => (
-            <ListItemEntry
-              key={item.id}
-              item={item}
-              onToggle={onToggleItem}
-              index={index}
-            />
-          ))}
-        </CardContent>
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <CardContent className="space-y-2">
+                {items.map((item, index) => (
+                  <ListItemEntry
+                    key={item.id}
+                    item={item}
+                    onToggle={onToggleItem}
+                    onDelete={onDeleteItem}
+                    index={index}
+                  />
+                ))}
+              </CardContent>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Card>
     </motion.div>
   );

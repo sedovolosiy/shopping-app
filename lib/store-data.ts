@@ -321,57 +321,43 @@ export function processShoppingList(rawText: string, storeType: string): Shoppin
     .map(line => line.trim())
     .filter(line => line !== '');
 
-  // Further split lines that might contain multiple space-separated items
+  // DO NOT further split lines that might contain multiple space-separated items
+  // Each line should be treated as a single item since AI handles the parsing
   const finalItems: string[] = [];
   initialLines.forEach(line => {
-    // A simple heuristic: if a line contains spaces and isn't a known multi-word item (this check is complex without AI),
-    // split by space. For now, we'll split by space if there are multiple words.
-    // This will break multi-word items like "ice cream" if not handled by keywords,
-    // but will correctly parse "хлеб сыр молоко".
-    const words = line.split(/\s+/);
-    if (words.length > 1) {
-      // Before splitting, we could try to see if the whole line matches a multi-word keyword.
-      // This is a simplified approach. A more robust solution would involve checking against all keywords.
-      // For now, we assume that if there are spaces, it's multiple items unless AI says otherwise.
-      // This part will be significantly improved with AI.
-      
-      // Check if the entire line is a known multi-word keyword for the given store
-      const normalizedStoreType = storeType.toLowerCase();
-      const storeConfig = STORE_CONFIGS[normalizedStoreType as keyof typeof STORE_CONFIGS];
-      let isMultiWordKeyword = false;
-      if (storeConfig) {
-        for (const category of storeConfig.categories) {
-          if (category.keywords && category.keywords.some(kw => kw.toLowerCase() === line.toLowerCase())) {
-            isMultiWordKeyword = true;
-            break;
-          }
-        }
-      }
-
-      if (isMultiWordKeyword) {
-        finalItems.push(line);
-      } else {
-        // If not a known multi-word item, split by space
-        words.forEach(word => {
-          if (word.trim() !== '') {
-            finalItems.push(word.trim());
-          }
-        });
-      }
-    } else if (line.trim() !== '') {
+    // No longer splitting by spaces - each line is a single shopping item
+    // This allows multi-word items to remain intact, e.g. "ice cream" or "red peppers"
+    // AI will handle splitting of lines like "Носки сосиски ser zloty" into separate products
+    if (line.trim() !== '') {
       finalItems.push(line.trim());
     }
   });
   
   const categorizedItems = finalItems.map((item, index) => {
     const { category, categoryOrder } = categorizeItem(item, storeType); // categorizeItem теперь сам обработает storeType
+    
+    // Detect language based on character set
+    const hasCyrillic = /[\u0400-\u04FF]/.test(item);
+    const hasLatin = /[a-zA-Z]/.test(item);
+    
+    let language = 'en'; // Default to English
+    if (hasCyrillic && !hasLatin) {
+      language = 'ru';
+    } else if (hasCyrillic && hasLatin) {
+      // Mixed text, determine by predominant characters
+      const cyrillicCount = (item.match(/[\u0400-\u04FF]/g) || []).length;
+      const latinCount = (item.match(/[a-zA-Z]/g) || []).length;
+      language = cyrillicCount > latinCount ? 'ru' : 'en';
+    }
+    
     return {
       id: `item-${index}`,
       name: item,
       category,
       categoryOrder,
       purchased: false,
-      originalText: item 
+      originalText: item,
+      language
     };
   });
   

@@ -40,16 +40,24 @@ async function processItemsWithAI(rawText: string): Promise<Array<{ originalText
     { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
   ];
 
-  // Оптимизированный промпт без требования перевода
+  // Оптимизированный промпт без требования перевода и с инструкциями по разделению нескольких товаров в одной строке
   const prompt = `
 Вы помощник по обработке списков покупок.
 Преобразуйте текстовый список покупок в структурированный JSON-массив.
+
+ОЧЕНЬ ВАЖНО: Если в одной строке перечислено несколько товаров через пробел (например, "Носки сосиски ser zloty"), 
+определите их как отдельные продукты и создайте для каждого свой JSON-объект. 
+Разбивайте строку на отдельные продукты, основываясь на:
+- Смысловых различиях между словами
+- Изменении языка (например, русский/польский/английский)
+- Явной смене категорий товаров (например, одежда -> продукты)
 
 Для каждого продукта из списка:
 
 1. originalText: Точный текст продукта без маркеров списка
    - Уберите маркеры списка (* • -) и нумерацию
    - Сохраните детали (количество, бренд) в скобках, кавычках и т.д.
+   - Если несколько товаров в одной строке, originalText должен содержать только конкретный товар
 
 2. normalizedText: Стандартизированное название продукта
    - НЕ ПЕРЕВОДИТЕ на другие языки
@@ -71,14 +79,15 @@ async function processItemsWithAI(rawText: string): Promise<Array<{ originalText
    - Переведите: "шт" -> "pcs", "пачки" -> "packages", "бутылки" -> "bottles"
    - Если не указано, используйте "unit"
 
-6. language: Основной язык текста продукта (например, "en", "ru")
+6. language: Основной язык текста продукта (например, "en", "ru", "pl")
 
 Формат вывода - валидный JSON-массив с полями: "originalText", "normalizedText", "category", "quantity", "unit", "language".
 
 Пример входа:
 "* Картошка (2 кг)
 * Помидоры "черри"
-* Яйца куриные С0 (по акции)"
+* Яйца куриные С0 (по акции)
+* Носки сосиски ser zloty"
 
 Ожидаемый выход (JSON):
 [
@@ -105,6 +114,30 @@ async function processItemsWithAI(rawText: string): Promise<Array<{ originalText
     "quantity": "1",
     "unit": "unit",
     "language": "ru"
+  },
+  {
+    "originalText": "Носки",
+    "normalizedText": "Носки",
+    "category": "Other",
+    "quantity": "1",
+    "unit": "unit",
+    "language": "ru"
+  },
+  {
+    "originalText": "сосиски",
+    "normalizedText": "сосиски",
+    "category": "Meat & Poultry",
+    "quantity": "1",
+    "unit": "unit",
+    "language": "ru"
+  },
+  {
+    "originalText": "ser zloty",
+    "normalizedText": "ser zloty",
+    "category": "Dairy & Eggs",
+    "quantity": "1",
+    "unit": "unit",
+    "language": "pl"
   }
 ]
 
@@ -295,7 +328,7 @@ ${rawText}
       return 'Other';
     };
     
-    // Улучшенная запасная логика с базовой категоризацией
+    // Улучшенная запасная логика с базовой категоризацией - не разбиваем строки на отдельные слова
     return rawText
       .split('\n')
       .map(line => line.trim())
@@ -311,8 +344,18 @@ ${rawText}
         const cleanedItem = line.replace(/^[\*\•\-\s]+/, '').trim();
         
         // Определение языка на основе набора символов
-        const hasСyrillic = /[\u0400-\u04FF]/.test(cleanedItem);
-        const language = hasСyrillic ? 'ru' : 'en';
+        const hasCyrillic = /[\u0400-\u04FF]/.test(cleanedItem);
+        const hasLatin = /[a-zA-Z]/.test(cleanedItem);
+        
+        let language = 'en';
+        if (hasCyrillic && !hasLatin) {
+          language = 'ru';
+        } else if (hasCyrillic && hasLatin) {
+          // Смешанный текст, определяем по преобладающим символам
+          const cyrillicCount = (cleanedItem.match(/[\u0400-\u04FF]/g) || []).length;
+          const latinCount = (cleanedItem.match(/[a-zA-Z]/g) || []).length;
+          language = cyrillicCount > latinCount ? 'ru' : 'en';
+        }
         
         // Базовое извлечение количества
         let quantity = '1';

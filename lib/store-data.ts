@@ -1,4 +1,3 @@
-
 import { StoreConfigs, CategoryDefinition, ShoppingItem, StoreType } from './types';
 
 // Конфигурации магазинов с категориями и ключевыми словами
@@ -276,17 +275,30 @@ export const STORE_CONFIGS: StoreConfigs = {
 };
 
 // Функция для определения категории товара
-export function categorizeItem(itemName: string, storeType: StoreType): { category: string; categoryOrder: number } {
-  const storeConfig = STORE_CONFIGS[storeType];
+export function categorizeItem(itemName: string, storeType: string): { category: string; categoryOrder: number } {
+  const normalizedStoreType = storeType.toLowerCase();
+  const storeConfig = STORE_CONFIGS[normalizedStoreType as keyof typeof STORE_CONFIGS]; 
+  
+  if (!storeConfig) {
+    return {
+      category: `Разное (Нет данных для магазина '${storeType}')`, // Используем оригинальный storeType для сообщения
+      categoryOrder: 999
+    };
+  }
+  // At this point, storeConfig is valid and has .categories
+
   const normalizedItem = itemName.toLowerCase().trim();
   
   for (const category of storeConfig.categories) {
-    for (const keyword of category.keywords) {
-      if (normalizedItem.includes(keyword.toLowerCase())) {
-        return {
-          category: category.name,
-          categoryOrder: category.order
-        };
+    // It's good practice to also check if category.keywords is an array, though type system should ensure this.
+    if (category && Array.isArray(category.keywords)) { 
+      for (const keyword of category.keywords) {
+        if (normalizedItem.includes(keyword.toLowerCase())) {
+          return {
+            category: category.name,
+            categoryOrder: category.order
+          };
+        }
       }
     }
   }
@@ -299,24 +311,71 @@ export function categorizeItem(itemName: string, storeType: StoreType): { catego
 }
 
 // Функция для обработки списка покупок
-export function processShoppingList(rawText: string, storeType: StoreType): ShoppingItem[] {
-  const lines = rawText
-    .split('\n')
-    .map(line => line.trim())
-    .filter(line => line.length > 0);
+export function processShoppingList(rawText: string, storeType: string): ShoppingItem[] {
+  // Normalize different separators to newline
+  // 1. Replace commas (with optional surrounding spaces) with newlines
+  let processedText = rawText.replace(/\s*,\s*/g, '\n');
   
-  return lines.map((line, index) => {
-    const { category, categoryOrder } = categorizeItem(line, storeType);
-    
+  const initialLines = processedText
+    .split(/[\n]+/)
+    .map(line => line.trim())
+    .filter(line => line !== '');
+
+  // Further split lines that might contain multiple space-separated items
+  const finalItems: string[] = [];
+  initialLines.forEach(line => {
+    // A simple heuristic: if a line contains spaces and isn't a known multi-word item (this check is complex without AI),
+    // split by space. For now, we'll split by space if there are multiple words.
+    // This will break multi-word items like "ice cream" if not handled by keywords,
+    // but will correctly parse "хлеб сыр молоко".
+    const words = line.split(/\s+/);
+    if (words.length > 1) {
+      // Before splitting, we could try to see if the whole line matches a multi-word keyword.
+      // This is a simplified approach. A more robust solution would involve checking against all keywords.
+      // For now, we assume that if there are spaces, it's multiple items unless AI says otherwise.
+      // This part will be significantly improved with AI.
+      
+      // Check if the entire line is a known multi-word keyword for the given store
+      const normalizedStoreType = storeType.toLowerCase();
+      const storeConfig = STORE_CONFIGS[normalizedStoreType as keyof typeof STORE_CONFIGS];
+      let isMultiWordKeyword = false;
+      if (storeConfig) {
+        for (const category of storeConfig.categories) {
+          if (category.keywords && category.keywords.some(kw => kw.toLowerCase() === line.toLowerCase())) {
+            isMultiWordKeyword = true;
+            break;
+          }
+        }
+      }
+
+      if (isMultiWordKeyword) {
+        finalItems.push(line);
+      } else {
+        // If not a known multi-word item, split by space
+        words.forEach(word => {
+          if (word.trim() !== '') {
+            finalItems.push(word.trim());
+          }
+        });
+      }
+    } else if (line.trim() !== '') {
+      finalItems.push(line.trim());
+    }
+  });
+  
+  const categorizedItems = finalItems.map((item, index) => {
+    const { category, categoryOrder } = categorizeItem(item, storeType); // categorizeItem теперь сам обработает storeType
     return {
       id: `item-${index}`,
-      name: line,
+      name: item,
       category,
       categoryOrder,
       purchased: false,
-      originalText: line
+      originalText: item 
     };
   });
+  
+  return categorizedItems;
 }
 
 // Функция для группировки товаров по категориям
@@ -331,9 +390,15 @@ export function groupItemsByCategory(items: ShoppingItem[]): { [category: string
 }
 
 // Функция для получения порядка категорий для конкретного магазина
-export function getCategoryOrder(storeType: StoreType): { [category: string]: number } {
-  const storeConfig = STORE_CONFIGS[storeType];
+export function getCategoryOrder(storeType: string): { [category: string]: number } {
+  const normalizedStoreType = storeType.toLowerCase();
+  const storeConfig = STORE_CONFIGS[normalizedStoreType as keyof typeof STORE_CONFIGS];
   const order: { [category: string]: number } = {};
+  
+  if (!storeConfig) { // Add check for undefined storeConfig
+    // Return empty order or a default if store config not found
+    return order; 
+  }
   
   storeConfig.categories.forEach(category => {
     order[category.name] = category.order;
@@ -343,8 +408,14 @@ export function getCategoryOrder(storeType: StoreType): { [category: string]: nu
 }
 
 // Функция для получения иконки категории
-export function getCategoryIcon(categoryName: string, storeType: StoreType): string {
-  const storeConfig = STORE_CONFIGS[storeType];
+export function getCategoryIcon(categoryName: string, storeType: string): string {
+  const normalizedStoreType = storeType.toLowerCase();
+  const storeConfig = STORE_CONFIGS[normalizedStoreType as keyof typeof STORE_CONFIGS];
+  
+  if (!storeConfig) { // Add check for undefined storeConfig
+    return 'package'; // Return default icon if store config not found
+  }
+  
   const category = storeConfig.categories.find(cat => cat.name === categoryName);
   return category?.icon || 'package';
 }

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -25,7 +24,7 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
 }) => {
   const groupedItems = groupItemsByCategory(items);
   const categoryOrder = getCategoryOrder(storeType);
-  const storeConfig = STORE_CONFIGS[storeType];
+  const storeConfig = STORE_CONFIGS[storeType as keyof typeof STORE_CONFIGS]; // Added type assertion
   
   // Сортируем категории по порядку маршрута
   const sortedCategories = Object.keys(groupedItems).sort((a, b) => {
@@ -50,7 +49,8 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Route className="h-6 w-6" />
-              <span>Оптимальный маршрут для {storeConfig.displayName}</span>
+              {/* Add a check for storeConfig before accessing displayName */}
+              <span>Оптимальный маршрут для {storeConfig ? storeConfig.displayName : storeType}</span>
             </div>
             <Button
               variant="outline"
@@ -126,10 +126,12 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
         <CardContent className="pt-6">
           <div className="text-center text-sm text-gray-600">
             <p className="mb-2">
-              <strong>Совет:</strong> Следуйте порядку категорий сверху вниз для оптимального маршрута в {storeConfig.displayName}
+              {/* Add a check for storeConfig before accessing displayName */}
+              <strong>Совет:</strong> Следуйте порядку категорий сверху вниз для оптимального маршрута в {storeConfig ? storeConfig.displayName : storeType}
             </p>
             <p className="text-xs text-gray-500">
-              Маршрут основан на типичной планировке магазинов {storeConfig.displayName}
+              {/* Add a check for storeConfig before accessing displayName */}
+              Маршрут основан на типичной планировке магазинов {storeConfig ? storeConfig.displayName : storeType}
             </p>
           </div>
         </CardContent>

@@ -1,24 +1,58 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { ShoppingItem, StoreType } from '@/lib/types';
+// Assuming StoreType might be different from the Store interface expected by ShoppingListForm
+// import { ShoppingItem, StoreType } from '@/lib/types'; 
+import { ShoppingItem } from '@/lib/types'; // Keep ShoppingItem if used by OptimizedListView
 import { processShoppingList } from '@/lib/store-data';
 import ShoppingListForm from '@/components/shopping-list-form';
 import OptimizedListView from '@/components/optimized-list-view';
 
+// Define the Store interface expected by ShoppingListForm and for availableStores
+interface Store {
+  id: string;
+  name: string;
+}
+
 export default function HomePage() {
   const [rawText, setRawText] = useState<string>('');
-  const [selectedStore, setSelectedStore] = useState<StoreType>('lidl');
+  // const [selectedStore, setSelectedStore] = useState<StoreType>('lidl'); // Old store state
   const [optimizedItems, setOptimizedItems] = useState<ShoppingItem[]>([]);
   const [isOptimized, setIsOptimized] = useState<boolean>(false);
 
-  const handleOptimize = useCallback(() => {
+  // New state variables required by ShoppingListForm
+  const [userId, setUserId] = useState<string>('guest-user-app-app'); // Default or load from auth
+  const [listName, setListName] = useState<string>('');
+  const [availableStores, setAvailableStores] = useState<Store[]>([]); // Initialize as empty array
+  const [selectedStoreId, setSelectedStoreId] = useState<string>(''); // For the Select component in the form
+
+  // Placeholder for onAddStore, actual implementation would involve an API call
+  const handleAddStore = useCallback(async (storeName: string): Promise<Store | null> => {
+    console.log('Attempting to add store:', storeName);
+    // In a real scenario, you'd make an API call here:
+    // const newStore = await api.addStore(storeName);
+    // setAvailableStores(prev => [...prev, newStore]);
+    // setSelectedStoreId(newStore.id);
+    // For now, returning a mock store or null
+    const mockNewStore = { id: Date.now().toString(), name: storeName };
+    setAvailableStores(prev => [...prev, mockNewStore]);
+    setSelectedStoreId(mockNewStore.id);
+    return mockNewStore;
+    // return null; 
+  }, []);
+
+  const handleOptimize = useCallback((currentUserId?: string, currentListName?: string) => { // Modified to accept userId and listName
     if (!rawText.trim()) return;
     
-    const processedItems = processShoppingList(rawText, selectedStore);
+    // The processShoppingList might need to be updated if it depends on the old selectedStore type
+    // For now, we'll assume it can work or will be adapted.
+    // It also doesn't use currentUserId or currentListName yet.
+    const storeForProcessing = availableStores.find(s => s.id === selectedStoreId)?.name || 'default';
+    const processedItems = processShoppingList(rawText, storeForProcessing as any); // Cast needed if StoreType is different
     setOptimizedItems(processedItems);
     setIsOptimized(true);
-  }, [rawText, selectedStore]);
+    console.log('Optimizing for user:', currentUserId, 'List name:', currentListName);
+  }, [rawText, selectedStoreId, availableStores]);
 
   const handleToggleItem = useCallback((itemId: string) => {
     setOptimizedItems(prevItems =>
@@ -56,10 +90,19 @@ export default function HomePage() {
           <ShoppingListForm
             rawText={rawText}
             setRawText={setRawText}
-            selectedStore={selectedStore}
-            setSelectedStore={setSelectedStore}
+            // selectedStore={selectedStore} // Prop not used by current form
+            // setSelectedStore={setSelectedStore} // Prop not used by current form
             onOptimize={handleOptimize}
             isOptimized={isOptimized}
+            // Pass new required props
+            userId={userId}
+            setUserId={setUserId}
+            listName={listName}
+            setListName={setListName}
+            availableStores={availableStores}
+            onAddStore={handleAddStore}
+            selectedStoreId={selectedStoreId}
+            setSelectedStoreId={setSelectedStoreId}
           />
         </div>
 
@@ -68,7 +111,7 @@ export default function HomePage() {
           <div>
             <OptimizedListView
               items={optimizedItems}
-              storeType={selectedStore}
+              storeType={availableStores.find(s => s.id === selectedStoreId)?.name || selectedStoreId as any} // Adapting for OptimizedListView
               onToggleItem={handleToggleItem}
               onReset={handleReset}
             />

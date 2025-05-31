@@ -8,6 +8,7 @@ import { processShoppingList } from '@/lib/store-data';
 import ShoppingListForm from '@/components/shopping-list-form';
 import OptimizedListView from '@/components/optimized-list-view';
 import AIStatus from '@/components/ai-status';
+import FullPageLoader from '@/components/full-page-loader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ListPlus } from 'lucide-react';
@@ -203,6 +204,23 @@ export default function HomePage() {
         </div>
       </header>
 
+      {/* Full-page loader */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <FullPageLoader 
+              message="Оптимизируем ваш маршрут..."
+              subMessage="Мы группируем товары и создаем оптимальный путь по магазину"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
       <main className="container mx-auto px-4 py-8 space-y-8 relative">
         <AIStatus isActive={isAIProcessed} aiModel="Gemini" />
         
@@ -212,12 +230,10 @@ export default function HomePage() {
             <p className="text-red-700">{error}</p>
           </div>
         )}
-
-        {/* Loading indicator removed - now handled by ShoppingListForm component */}
         
         <AnimatePresence mode="wait">
-          {/* Форма ввода - показываем когда не оптимизировано, явно запрошено или при загрузке */}
-          {(showForm || isLoading) && (
+          {/* Форма ввода - показываем когда не оптимизировано или явно запрошено */}
+          {showForm && !isLoading && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}

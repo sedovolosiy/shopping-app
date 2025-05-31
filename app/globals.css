@@ -100,3 +100,32 @@
     @apply px-4;
   }
 }
+
+/* Animation for the shopping cart path */
+@keyframes dash {
+  to {
+    stroke-dashoffset: 100;
+  }
+}
+
+.path-animation {
+  animation: dash 20s linear infinite;
+}
+
+/* Overlay animation */
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-background {
+  background-size: 200% 200%;
+  animation: gradient-animation 5s ease infinite;
+}

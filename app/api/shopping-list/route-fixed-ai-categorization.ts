@@ -1,4 +1,4 @@
-// app/api/shopping-list/route.ts
+// app/api/shopping-list/route-fixed-ai-categorization.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';

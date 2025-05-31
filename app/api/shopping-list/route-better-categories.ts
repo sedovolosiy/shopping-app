@@ -1,4 +1,4 @@
-// app/api/shopping-list/route.ts
+// app/api/shopping-list/route-better-categories.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
@@ -11,6 +11,71 @@ const GENERAL_CATEGORIES = [
   'Personal Care', 'Baby Items', 'Pet Supplies', 'Other'
 ];
 
+// Helper function to categorize items based on multi-language keywords
+function categorizeProduct(product: string): string {
+  const lowerProduct = product.toLowerCase();
+  
+  // Multi-language category detection based on common keywords in English and Russian
+  
+  // Dairy & Eggs
+  if (/milk|cream|cheese|yogurt|butter|eggs|dairy|kefir|cottage|молоко|сыр|йогурт|творог|сметан|сливк|масло|яйца|яйцо/i.test(lowerProduct)) {
+    return 'Dairy & Eggs';
+  }
+  
+  // Bakery
+  if (/bread|bun|roll|bagel|muffin|croissant|donut|pastry|cake|pie|cookie|хлеб|булк|батон|лаваш|выпечк|печен|торт|булочк/i.test(lowerProduct)) {
+    return 'Bakery';
+  }
+  
+  // Fresh Produce
+  if (/apple|orange|banana|fruit|vegetable|tomato|potato|onion|carrot|lettuce|cucumber|pepper|garlic|яблок|банан|апельсин|лимон|картошк|картофел|помидор|томат|огурц|морковь|капуст|перец|лук|чеснок|фрукт|овощ/i.test(lowerProduct)) {
+    return 'Fresh Produce';
+  }
+  
+  // Meat & Poultry
+  if (/beef|chicken|pork|turkey|meat|ground|sausage|bacon|ham|lamb|veal|говядин|свинин|курица|куриц|филе|фарш|колбас|сосис|бекон|мясо/i.test(lowerProduct)) {
+    return 'Meat & Poultry';
+  }
+  
+  // Fish & Seafood
+  if (/fish|salmon|tuna|shrimp|seafood|рыба|лосось|тунец|креветк|морепродукт/i.test(lowerProduct)) {
+    return 'Fish & Seafood';
+  }
+  
+  // Frozen Foods
+  if (/frozen|ice cream|pizza|замороженн|пельмен|мороженое/i.test(lowerProduct)) {
+    return 'Frozen Foods';
+  }
+  
+  // Beverages
+  if (/water|juice|soda|tea|coffee|drink|beverage|wine|beer|alcohol|вода|сок|чай|кофе|напиток|газиров|вино|пиво/i.test(lowerProduct)) {
+    return 'Beverages';
+  }
+  
+  // Pantry Staples
+  if (/flour|sugar|salt|oil|rice|pasta|cereal|bean|sauce|ketchup|mustard|mayo|soup|can|мука|сахар|соль|масло|рис|макарон|крупа|консерв|соус|кетчуп|майонез/i.test(lowerProduct)) {
+    return 'Pantry Staples';
+  }
+  
+  // Snacks
+  if (/snack|chip|crisp|pretzel|popcorn|nut|candy|chocolate|gum|cookie|снэк|чипс|орех|конфет|шоколад|печенье/i.test(lowerProduct)) {
+    return 'Snacks';
+  }
+  
+  // Household Supplies
+  if (/paper|towel|toilet|soap|detergent|cleaning|trash|bag|foil|dish|салфетк|мыло|чистящ|пакет/i.test(lowerProduct)) {
+    return 'Household Supplies';
+  }
+  
+  // Personal Care
+  if (/toothpaste|shampoo|soap|lotion|deodorant|razor|cosmetic|зубн|шампунь|мыло|косметик/i.test(lowerProduct)) {
+    return 'Personal Care';
+  }
+  
+  // Default category if no matches
+  return 'Other';
+}
+
 // AI processing function using Google Gemini
 async function processItemsWithAI(rawText: string): Promise<Array<{ originalText: string; normalizedText: string; category: string; quantity: string; unit: string; language: string }>> {
   console.log('[AI_PROCESSING] Entered processItemsWithAI function.');
@@ -22,16 +87,16 @@ async function processItemsWithAI(rawText: string): Promise<Array<{ originalText
   console.log('[AI_PROCESSING] API key found.');
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  // Updated to use gemini-1.5-flash-latest
+  // Updated to use gemini-1.5-flash-8b or the latest flash model
   console.log('[AI_PROCESSING] Initialized GoogleGenerativeAI. Attempting to get model...');
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' }); // Using -latest as -8b might not be a direct SDK identifier
   console.log('[AI_PROCESSING] Successfully got model.');
 
   const generationConfig = {
     temperature: 0.2, // Lower temperature for more deterministic output
     topK: 1,
     topP: 1,
-    maxOutputTokens: 8192, // Увеличиваем до максимального лимита для модели gemini-1.5-flash-8b
+    maxOutputTokens: 2048,
   };
 
   const safetySettings = [
@@ -158,7 +223,7 @@ ${rawText}
     const aiResponseText = response.text();
     console.log('[AI_PROCESSING] Raw AI Response Text (before cleaning):', aiResponseText);
     
-    // Advanced JSON cleaning and fixing pipeline with enhanced error recovery
+    // Enhanced JSON cleaning and fixing pipeline
     try {
       // Clean the response
       let cleanedJsonString = aiResponseText;
@@ -176,36 +241,6 @@ ${rawText}
       // Fix missing commas between objects
       cleanedJsonString = cleanedJsonString.replace(/}(\s*){/g, '},{');
       
-      // Fix truncated JSON with missing closing brackets
-      // Find the last properly closed object by matching braces
-      const fixBrokenJson = (json: string): string => {
-        // Count opening and closing braces to detect missing braces
-        let openBraces = 0;
-        let openBrackets = 0;
-        
-        for (let i = 0; i < json.length; i++) {
-          if (json[i] === '{') openBraces++;
-          if (json[i] === '}') openBraces--;
-          if (json[i] === '[') openBrackets++;
-          if (json[i] === ']') openBrackets--;
-        }
-        
-        // Add missing closing braces and brackets
-        let fixed = json;
-        while (openBraces > 0) {
-          fixed += '}';
-          openBraces--;
-        }
-        while (openBrackets > 0) {
-          fixed += ']';
-          openBrackets--;
-        }
-        
-        return fixed;
-      };
-      
-      cleanedJsonString = fixBrokenJson(cleanedJsonString);
-      
       // Handle line breaks that cause parsing problems
       cleanedJsonString = cleanedJsonString.replace(/\n/g, ' ').trim();
       
@@ -216,67 +251,25 @@ ${rawText}
       if (!cleanedJsonString.endsWith(']')) {
         cleanedJsonString = cleanedJsonString + ']';
       }
-      
-      // Fix broken quotes and unescaped quotes in properties
-      cleanedJsonString = cleanedJsonString.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
-      
-      // Fix quotes inside property values that aren't properly escaped
-      cleanedJsonString = cleanedJsonString.replace(/"([^"]*)""/g, '"$1\\"');
-      
-      // Additional handling for nested objects with quotes
-      cleanedJsonString = cleanedJsonString.replace(/"{/g, '{').replace(/}"/g, '}');
-      
+
       console.log('[AI_PROCESSING] Cleaned and fixed JSON String:', cleanedJsonString);
       
-      try {
-        // First try normal parsing
-        const parsedItems = JSON.parse(cleanedJsonString);
-        
-        // Validate and return the results
-        if (!Array.isArray(parsedItems)) {
-          throw new Error("AI response is not a JSON array");
-        }
-        
-        return parsedItems.map(item => ({
-          originalText: String(item.originalText || ''),
-          normalizedText: String(item.normalizedText || item.originalText || ''),
-          category: String(item.category || 'Other'),
-          quantity: String(item.quantity || '1'),
-          unit: String(item.unit || 'unit'),
-          language: String(item.language || 'en') 
-        }));
-      } catch (initialJsonError) {
-        console.error('[AI_PROCESSING] Initial parsing failed, attempting advanced recovery:', initialJsonError);
-        
-        // More aggressive JSON repair - try fixing partial JSON by extracting valid objects
-        const objectsRegex = /{[^{}]*"originalText"[^{}]*"normalizedText"[^{}]*"category"[^{}]*"quantity"[^{}]*"unit"[^{}]*"language"[^{}]*}/g;
-        const validObjectsMatches = cleanedJsonString.match(objectsRegex);
-        
-        if (validObjectsMatches && validObjectsMatches.length > 0) {
-          console.log('[AI_PROCESSING] Found valid objects with regex, attempting to build valid array');
-          const validArrayString = '[' + validObjectsMatches.join(',') + ']';
-          
-          try {
-            const recoveredArray = JSON.parse(validArrayString);
-            
-            return recoveredArray.map((item: any) => ({
-              originalText: String(item.originalText || ''),
-              normalizedText: String(item.normalizedText || item.originalText || ''),
-              category: String(item.category || 'Other'),
-              quantity: String(item.quantity || '1'),
-              unit: String(item.unit || 'unit'),
-              language: String(item.language || 'en')
-            }));
-          } catch (recoveryError) {
-            // If advanced recovery also fails, rethrow the original error
-            console.error('[AI_PROCESSING] Advanced JSON recovery failed:', recoveryError);
-            throw initialJsonError;
-          }
-        } else {
-          // If we can't extract valid objects, rethrow the original error
-          throw initialJsonError;
-        }
+      // Parse the cleaned JSON
+      const parsedItems = JSON.parse(cleanedJsonString);
+      
+      // Validate and return the results
+      if (!Array.isArray(parsedItems)) {
+        throw new Error("AI response is not a JSON array");
       }
+      
+      return parsedItems.map(item => ({
+        originalText: String(item.originalText || ''),
+        normalizedText: String(item.normalizedText || item.originalText || ''),
+        category: String(item.category || 'Other'),
+        quantity: String(item.quantity || '1'),
+        unit: String(item.unit || 'unit'),
+        language: String(item.language || 'en') 
+      }));
     } catch (jsonError) {
       // If JSON parsing fails, log and throw the error
       console.error('[AI_PROCESSING] Error parsing or fixing JSON:', jsonError);
@@ -284,46 +277,7 @@ ${rawText}
     }
   } catch (error) {
     console.error('[AI_PROCESSING] Error processing items with AI:', error);
-    
-    // Smart fallback function that uses simple keyword matching as a last resort
-    // This is a basic fallback only when AI completely fails
-    const basicCategorize = (item: string): string => {
-      const lowerItem = item.toLowerCase();
-      
-      // Basic categorization logic - only used when AI completely fails
-      if (/milk|cream|cheese|yogurt|butter|eggs|dairy|kefir|молоко|сыр|йогурт|творог|сметан|масло|яйца/i.test(lowerItem)) {
-        return 'Dairy & Eggs';
-      }
-      if (/bread|bun|roll|bagel|muffin|croissant|хлеб|булк|батон|лаваш|выпечк/i.test(lowerItem)) {
-        return 'Bakery';
-      }
-      if (/apple|orange|banana|fruit|vegetable|tomato|potato|onion|carrot|lettuce|cucumber|pepper|garlic|яблок|банан|апельсин|лимон|картош|помидор|томат|огурц|морковь|лук|чеснок|фрукт|овощ/i.test(lowerItem)) {
-        return 'Fresh Produce';
-      }
-      if (/beef|chicken|pork|turkey|meat|sausage|bacon|говядин|свинин|курин|курица|филе|фарш|колбас|сосис|бекон|мясо/i.test(lowerItem)) {
-        return 'Meat & Poultry';
-      }
-      if (/fish|salmon|tuna|seafood|рыба|лосось|тунец|морепродукт/i.test(lowerItem)) {
-        return 'Fish & Seafood';
-      }
-      if (/frozen|ice cream|pizza|замороженн|пельмен|мороженое/i.test(lowerItem)) {
-        return 'Frozen Foods';
-      }
-      if (/water|juice|soda|tea|coffee|drink|wine|beer|вода|сок|чай|кофе|напиток|пиво|вино/i.test(lowerItem)) {
-        return 'Beverages';
-      }
-      if (/flour|sugar|salt|oil|rice|pasta|cereal|bean|sauce|ketchup|soup|мука|сахар|соль|рис|макарон|крупа|консерв|соус/i.test(lowerItem)) {
-        return 'Pantry Staples';
-      }
-      if (/soap|detergent|cleaning|trash|bag|paper|towel|toilet|мыло|чистящ|пакет|салфетк/i.test(lowerItem)) {
-        return 'Household Supplies';
-      }
-      
-      // Default category
-      return 'Other';
-    };
-    
-    // Improved fallback logic with basic categorization
+    // Enhanced fallback logic for failed AI processing
     return rawText
       .split('\n')
       .map(line => line.trim())
@@ -333,7 +287,7 @@ ${rawText}
         if (/^-{3,}$/.test(line) || /^={3,}$/.test(line) || /^\*{3,}$/.test(line)) return false;
         return true;
       })
-      // Clean the lines and apply basic categorization as last resort
+      // Clean the lines and use improved categorization
       .map(line => {
         // Remove bullet points
         const cleanedItem = line.replace(/^[\*\•\-\s]+/, '').trim();
@@ -342,41 +296,15 @@ ${rawText}
         const hasСyrillic = /[\u0400-\u04FF]/.test(cleanedItem);
         const language = hasСyrillic ? 'ru' : 'en';
         
-        // Basic quantity extraction
-        let quantity = '1';
-        let unit = 'unit';
-        
-        // Try to extract quantity and unit using regex
-        const quantityMatch = cleanedItem.match(/(\d+(?:\.\d+)?)\s*(кг|kg|г|g|л|l|шт|pcs|штук|пачк|пачки|bottles|бутыл|бутылк)/i);
-        if (quantityMatch) {
-          quantity = quantityMatch[1];
-          
-          // Normalize units
-          const rawUnit = quantityMatch[2].toLowerCase();
-          if (/кг|kg/i.test(rawUnit)) unit = 'kg';
-          else if (/г|g/i.test(rawUnit)) unit = 'g';
-          else if (/л|l/i.test(rawUnit)) unit = 'l';
-          else if (/шт|pcs|штук/i.test(rawUnit)) unit = 'pcs';
-          else if (/пачк|пачки/i.test(rawUnit)) unit = 'packages';
-          else if (/бутыл|bottles/i.test(rawUnit)) unit = 'bottles';
-        }
-        
-        // Apply basic categorization as fallback
-        const category = basicCategorize(cleanedItem);
-        
-        // Create normalized text with translation for Russian items
-        let normalizedText = cleanedItem;
-        if (language === 'ru') {
-          // We don't have translation capability here, so just indicate it's untranslated
-          normalizedText = cleanedItem + ' (untranslated)';
-        }
+        // Use the helper function to get a proper category
+        const category = categorizeProduct(cleanedItem);
         
         return {
           originalText: cleanedItem,
-          normalizedText: normalizedText,
-          category: category, // Use basic categorization
-          quantity: quantity,
-          unit: unit,
+          normalizedText: cleanedItem,
+          category: category,
+          quantity: '1',
+          unit: 'unit',
           language: language,
         };
       });
@@ -438,6 +366,7 @@ export async function POST(request: Request) {
     if (!processedItems || processedItems.length === 0) {
       // This case might happen if AI returns an empty array or if the fallback also results in no items.
       // The fallback in processItemsWithAI should ideally still parse based on newlines if AI truly fails.
+      // Let's refine the error message or handling if AI returns nothing meaningful.
       console.warn('[POST_HANDLER] AI processed items are null or empty.');
       return NextResponse.json({ error: 'AI could not process any items from the list, or the list was empty after processing.' }, { status: 400 });
     }

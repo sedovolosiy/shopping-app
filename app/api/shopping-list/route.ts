@@ -661,3 +661,99 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+const shoppingListDeleteSchema = z.object({
+  listId: z.string().min(1, 'List ID cannot be empty'),
+  userId: z.string().min(1, 'User ID cannot be empty'),
+});
+
+export async function DELETE(request: Request) {
+  console.log('[DELETE_HANDLER] Received DELETE request to /api/shopping-list');
+  
+  try {
+    const { searchParams } = new URL(request.url);
+    const listId = searchParams.get('listId');
+    const userId = searchParams.get('userId');
+
+    if (!listId || !userId) {
+      console.error('[DELETE_HANDLER] Missing required parameters');
+      return NextResponse.json({ 
+        success: false,
+        error: 'Missing required parameters',
+        details: { listId: !listId, userId: !userId }
+      }, { status: 400 });
+    }
+
+    // Сначала найдем пользователя
+    const user = await prisma.user.findUnique({
+      where: { identifier: userId },
+    });
+
+    if (!user) {
+      console.warn('[DELETE_HANDLER] User not found:', userId);
+      return NextResponse.json({ 
+        success: false,
+        error: 'User not found'
+      }, { status: 404 });
+    }
+
+    // Проверяем существование списка и принадлежность пользователю
+    const list = await prisma.shoppingList.findFirst({
+      where: {
+        id: listId,
+        userId: user.id,
+      },
+      include: {
+        items: true,
+      },
+    });
+
+    if (!list) {
+      console.warn('[DELETE_HANDLER] Shopping list not found or access denied');
+      return NextResponse.json({ 
+        success: false,
+        error: 'Shopping list not found or access denied'
+      }, { status: 404 });
+    }
+
+    // Удаляем все элементы списка
+    await prisma.shoppingListItem.deleteMany({
+      where: {
+        shoppingListId: listId,
+      },
+    });
+
+    // Удаляем сам список
+    const deletedList = await prisma.shoppingList.delete({
+      where: {
+        id: listId,
+      },
+    });
+
+    console.log('[DELETE_HANDLER] Shopping list deleted successfully:', listId);
+
+    return NextResponse.json({
+      success: true,
+      message: "Shopping list deleted successfully",
+      data: deletedList,
+      metadata: {
+        listId: listId,
+        userId: userId,
+        name: list.name,
+        itemCount: list.items.length,
+        action: 'deleted'
+      }
+    }, { status: 200 });
+
+  } catch (error) {
+    console.error('[DELETE_HANDLER] Failed to delete shopping list:', error);
+    return NextResponse.json({ 
+      success: false,
+      message: 'Failed to delete shopping list',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      metadata: {
+        action: 'delete_failed'
+      }
+    }, { status: 500 });
+  }
+}

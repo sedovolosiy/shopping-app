@@ -364,6 +364,37 @@ export default function HomePage() {
     }
   }, [optimizedItems, handleReset]);
 
+  const deleteList = useCallback(async (listId: string) => {
+    if (!currentUserId) return;
+    
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/shopping-list?listId=${listId}&userId=${currentUserId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete list');
+      }
+
+      if (data.success) {
+        // Show success result and update the list
+        console.log('[DELETE] List deleted successfully:', data.metadata);
+        // Update saved lists
+        loadSavedLists();
+      } else {
+        throw new Error(data.message || 'Failed to delete list');
+      }
+    } catch (error) {
+      console.error('Error deleting list:', error);
+      setError(error instanceof Error ? error.message : 'Failed to delete list');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentUserId, loadSavedLists]);
+
   // Render different views based on app state
   const renderCurrentView = () => {
     switch (appState) {
@@ -385,6 +416,7 @@ export default function HomePage() {
             onCreateNew={handleCreateNew}
             onLogout={handleLogout}
             onRefresh={handleRefreshSavedLists}
+            onDeleteList={deleteList}
           />
         );
 

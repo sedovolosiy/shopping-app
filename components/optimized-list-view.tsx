@@ -30,6 +30,9 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
   onToggleForm
 }) => {
   const [expandAll, setExpandAll] = useState<boolean>(true);
+  // Добавляем состояние для отслеживания развернутых/свёрнутых категорий
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  
   const groupedItems = groupItemsByCategory(items);
   // Сортировка категорий по алфавиту (или оставить без сортировки)
   const sortedCategories = Object.keys(groupedItems).sort();
@@ -40,6 +43,26 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
 
   const toggleExpandAll = () => {
     setExpandAll(!expandAll);
+    // Сбрасываем отдельные настройки категорий при глобальном переключении
+    setExpandedCategories({});
+  };
+  
+  // Функция для переключения состояния отдельной категории
+  const toggleCategoryExpand = (categoryName: string) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryName]: !(prev[categoryName] ?? expandAll)
+    }));
+  };
+  
+  // Определяем, развернута ли категория, с учетом индивидуальных настроек
+  const isCategoryExpanded = (categoryName: string) => {
+    // Проверяем, есть ли индивидуальная настройка для категории
+    if (categoryName in expandedCategories) {
+      return expandedCategories[categoryName];
+    }
+    // Если нет, используем глобальную настройку
+    return expandAll;
   };
 
   if (items.length === 0) {
@@ -159,8 +182,8 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
             onToggleItem={onToggleItem}
             onDeleteItem={onDeleteItem}
             categoryIndex={index}
-            isExpanded={expandAll}
-            onToggleExpand={() => {}}
+            isExpanded={isCategoryExpanded(categoryName)}
+            onToggleExpand={() => toggleCategoryExpand(categoryName)}
           />
         ))}
       </div>

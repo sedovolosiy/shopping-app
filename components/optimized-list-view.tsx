@@ -33,12 +33,13 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
   // Добавляем состояние для отслеживания развернутых/свёрнутых категорий
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   
-  const groupedItems = groupItemsByCategory(items);
+  const safeItems = Array.isArray(items) ? items : [];
+  const groupedItems: Record<string, ShoppingItem[]> = groupItemsByCategory(safeItems) || {};
   // Сортировка категорий по алфавиту (или оставить без сортировки)
   const sortedCategories = Object.keys(groupedItems).sort();
 
-  const totalItems = items.length;
-  const completedItems = items.filter(item => item.purchased).length;
+  const totalItems = safeItems.length;
+  const completedItems = safeItems.filter(item => item.purchased).length;
   const completionPercentage = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
 
   const toggleExpandAll = () => {
@@ -65,7 +66,7 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
     return expandAll;
   };
 
-  if (items.length === 0) {
+  if (safeItems.length === 0) {
     return null;
   }
 

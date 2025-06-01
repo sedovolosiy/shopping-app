@@ -1,4 +1,3 @@
-// app/api/shopping-list/route.ts
 import { NextResponse } from 'next/server';
 import { shoppingListCreateSchema, shoppingListGetSchema, shoppingListDeleteSchema } from './schemas/validation';
 import { ShoppingListService } from './services/shoppingListService';

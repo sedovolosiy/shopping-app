@@ -4,16 +4,16 @@ import React, { useState, useCallback, useEffect } from 'react';
 // Assuming StoreType might be different from the Store interface expected by ShoppingListForm
 // import { ShoppingItem, StoreType } from '@/lib/types'; 
 import { ShoppingItem } from '@/lib/types'; // Keep ShoppingItem if used by OptimizedListView
-import { processShoppingList } from '@/lib/store-data';
+import { processShoppingList, categorizeItem, getCategoryOrder } from '@/lib/store-data';
 import ShoppingListForm from '@/components/shopping-list-form';
 import OptimizedListView from '@/components/optimized-list-view';
 import AIStatus from '@/components/ai-status';
 import FullPageLoader from '@/components/full-page-loader';
 import UserLogin from '@/components/user-login';
 import SavedListsView from '@/components/saved-lists-view';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ListPlus } from 'lucide-react';
+import MainClientContent from "./MainClientContent";
 
 // Define the Store interface expected by ShoppingListForm and for availableStores
 interface Store {
@@ -190,8 +190,39 @@ export default function HomePage() {
       } else {
         // Локальная обработка без AI
         const storeForProcessing = availableStores.find(s => s.id === selectedStoreId)?.name || 'default';
-        const processedItems = processShoppingList(rawText, storeForProcessing as any);
-        setOptimizedItems(processedItems);
+        const processedItems = await processShoppingList(rawText, storeForProcessing as any);
+        if (!Array.isArray(processedItems)) {
+          processedItems = processedItems ? [processedItems] : [];
+        }
+        // Получаем storeCode для категоризации (например, 'biedronka', 'lidl')
+        let storeCode = 'default';
+        const selectedStoreObj = availableStores.find(s => s.id === selectedStoreId);
+        if (selectedStoreObj) {
+          storeCode = (selectedStoreObj.name || 'default').toLowerCase();
+        }
+        // Категоризация и порядок категории для каждого продукта (асинхронно)
+        const normalizedItems = await Promise.all(processedItems.map(async (item: any, idx: number) => {
+          const itemText = item.normalizedText || item.originalText || item.name || '';
+          // Логируем входные данные для категоризации
+          console.log('[LOCAL Fallback] Item:', item);
+          console.log('[LOCAL Fallback] itemText:', itemText);
+          console.log('[LOCAL Fallback] storeCode (lowercase):', storeCode);
+          const { category, categoryOrder } = await categorizeItem(itemText, storeCode);
+          console.log('[LOCAL Fallback] category:', category);
+          console.log('[LOCAL Fallback] categoryOrder:', categoryOrder);
+          return {
+            id: `local-${idx}`,
+            name: itemText,
+            originalText: item.originalText || item.name || '',
+            category,
+            categoryOrder: typeof categoryOrder === 'number' ? categoryOrder : 0,
+            quantity: item.quantity || '1',
+            unit: item.unit || 'unit',
+            language: item.language || 'ru',
+            purchased: false,
+          };
+        }));
+        setOptimizedItems(normalizedItems);
         setIsOptimized(true);
         setAppState(AppState.OPTIMIZED);
         setShowForm(false);
@@ -232,9 +263,34 @@ export default function HomePage() {
       setError("Could not process your list online. Using local processing instead.");
       
       // Fallback to completely local processing if API fails
-      const storeForProcessing = availableStores.find(s => s.id === selectedStoreId)?.name || 'default';
-      const processedItems = processShoppingList(rawText, storeForProcessing as any);
-      setOptimizedItems(processedItems);
+      const storeForProcessing = availableStores.find(s => s.id === selectedStoreId)?.name?.toLowerCase() || 'default';
+      let processedItems = await processShoppingList(rawText, storeForProcessing as any);
+      if (!Array.isArray(processedItems)) {
+        processedItems = processedItems ? [processedItems] : [];
+      }
+      // Категоризация и порядок категории для каждого продукта (асинхронно)
+      const normalizedItems = await Promise.all(processedItems.map(async (item: any, idx: number) => {
+        const itemText = item.normalizedText || item.originalText || item.name || '';
+        // Логируем входные данные для категоризации
+        console.log('[LOCAL Fallback] Item:', item);
+        console.log('[LOCAL Fallback] itemText:', itemText);
+        console.log('[LOCAL Fallback] storeForProcessing:', storeForProcessing);
+        const { category, categoryOrder } = await categorizeItem(itemText, storeForProcessing); // always lowercase
+        console.log('[LOCAL Fallback] category:', category);
+        console.log('[LOCAL Fallback] categoryOrder:', categoryOrder);
+        return {
+          id: `local-${idx}`,
+          name: itemText,
+          originalText: item.originalText || item.name || '',
+          category,
+          categoryOrder: typeof categoryOrder === 'number' ? categoryOrder : 0,
+          quantity: item.quantity || '1',
+          unit: item.unit || 'unit',
+          language: item.language || 'ru',
+          purchased: false,
+        };
+      }));
+      setOptimizedItems(normalizedItems);
       setIsOptimized(true);
       setAppState(AppState.OPTIMIZED);
       setShowForm(false);
@@ -450,14 +506,33 @@ export default function HomePage() {
       case AppState.CREATE_NEW:
         return (
           <div className="space-y-8">
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.4 }}
-              key="shopping-form"
-              className="mb-8"
-            >
+            <ShoppingListForm
+              rawText={rawText}
+              setRawText={setRawText}
+              onOptimize={handleOptimize}
+              isOptimized={isOptimized}
+              userId={currentUserId}
+              setUserId={setCurrentUserId}
+              listName={listName}
+              setListName={setListName}
+              availableStores={availableStores}
+              onAddStore={handleAddStore}
+              selectedStoreId={selectedStoreId}
+              setSelectedStoreId={setSelectedStoreId}
+              isLoading={isLoading}
+              onReset={handleReset}
+              isEditingExistingList={isEditingExistingList}
+              useAI={useAI}
+              setUseAI={setUseAI}
+            />
+          </div>
+        );
+
+      case AppState.OPTIMIZED:
+        return (
+          <div className="space-y-8">
+            {/* Show form if toggled */}
+            {showForm && (
               <ShoppingListForm
                 rawText={rawText}
                 setRawText={setRawText}
@@ -469,7 +544,7 @@ export default function HomePage() {
                 setListName={setListName}
                 availableStores={availableStores}
                 onAddStore={handleAddStore}
-                selectedStoreId={selectedStoreId}
+                selectedStoreId={selectedStoreId} // Pass selectedStoreId
                 setSelectedStoreId={setSelectedStoreId}
                 isLoading={isLoading}
                 onReset={handleReset}
@@ -477,63 +552,18 @@ export default function HomePage() {
                 useAI={useAI}
                 setUseAI={setUseAI}
               />
-            </motion.div>
-          </div>
-        );
-
-      case AppState.OPTIMIZED:
-        return (
-          <div className="space-y-8">
-            {/* Show form if toggled */}
-            {showForm && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.4 }}
-                key="shopping-form"
-                className="mb-8"
-              >
-                <ShoppingListForm
-                  rawText={rawText}
-                  setRawText={setRawText}
-                  onOptimize={handleOptimize}
-                  isOptimized={isOptimized}
-                  userId={currentUserId}
-                  setUserId={setCurrentUserId}
-                  listName={listName}
-                  setListName={setListName}
-                  availableStores={availableStores}
-                  onAddStore={handleAddStore}
-                  selectedStoreId={selectedStoreId} // Pass selectedStoreId
-                  setSelectedStoreId={setSelectedStoreId}
-                  isLoading={isLoading}
-                  onReset={handleReset}
-                  isEditingExistingList={isEditingExistingList}
-                  useAI={useAI}
-                  setUseAI={setUseAI}
-                />
-              </motion.div>
             )}
 
             {/* Optimized list */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-              key="optimized-list"
-            >
-              <OptimizedListView
-                items={optimizedItems}
-                storeName={currentStoreName} // Use the new state variable here
-                onToggleItem={handleToggleItem}
-                onDeleteItem={handleDeleteItem}
-                onReset={handleReset}
-                isAIProcessed={isAIProcessed}
-                onToggleForm={toggleFormVisibility}
-              />
-            </motion.div>
+            <OptimizedListView
+              items={optimizedItems}
+              storeName={currentStoreName} // Use the new state variable here
+              onToggleItem={handleToggleItem}
+              onDeleteItem={handleDeleteItem}
+              onReset={handleReset}
+              isAIProcessed={isAIProcessed}
+              onToggleForm={toggleFormVisibility}
+            />
           </div>
         );
 
@@ -569,103 +599,18 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Full-page loader */}
-      <AnimatePresence>
-        {isLoading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <FullPageLoader 
-              message="Оптимизируем ваш маршрут..."
-              subMessage="Мы группируем товары и создаем оптимальный путь по магазину"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      
-      <main className="container mx-auto px-4 py-8 space-y-8 relative">
-        {(appState === AppState.CREATE_NEW || appState === AppState.OPTIMIZED) && (
-          <AIStatus isActive={isAIProcessed} aiModel="Gemini" />
-        )}
-        
-        {/* Сообщение об ошибке */}
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md">
-            <p className="text-red-700">{error}</p>
-          </div>
-        )}
-        
-        <AnimatePresence mode="wait">
-          {!isLoading && renderCurrentView()}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {/* Пустое состояние */}
-          {appState === AppState.OPTIMIZED && isOptimized && optimizedItems.length === 0 && !isLoading && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-              key="empty-state"
-              className="text-center py-12"
-            >
-              <div className="text-gray-500 text-lg">
-                Список покупок пуст. Добавьте товары для оптимизации маршрута.
-              </div>
-              <Button 
-                onClick={handleReset}
-                variant="outline"
-                className="mt-4 border-blue-500 text-blue-600 hover:bg-blue-50"
-              >
-                <ListPlus className="h-5 w-5 mr-2" />
-                Создать новый список
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Информационные карточки */}
-        <AnimatePresence>
-          {appState === AppState.CREATE_NEW && !isOptimized && !isLoading && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              key="info-cards"
-              className="grid md:grid-cols-3 gap-6 mt-12"
-            >
-              <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-                <div className="text-blue-600 text-2xl mb-3">🛒</div>
-                <h3 className="font-semibold text-lg mb-2">Простой ввод</h3>
-                <p className="text-gray-600 text-sm">
-                  Вставьте список покупок из любого источника - Telegram, SMS, заметок
-                </p>
-              </div>
-              
-              <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-                <div className="text-green-600 text-2xl mb-3">🗺️</div>
-                <h3 className="font-semibold text-lg mb-2">Умная оптимизация</h3>
-                <p className="text-gray-600 text-sm">
-                  Автоматическая группировка товаров по категориям и оптимальный маршрут
-                </p>
-              </div>
-              
-              <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-                <div className="text-purple-600 text-2xl mb-3">📱</div>
-                <h3 className="font-semibold text-lg mb-2">Мобильная версия</h3>
-                <p className="text-gray-600 text-sm">
-                  Удобное использование на телефоне прямо в магазине
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
+      {/* Клиентский контент с анимациями и состояниями */}
+      <MainClientContent
+        appState={appState}
+        isOptimized={isOptimized}
+        isLoading={isLoading}
+        isAIProcessed={isAIProcessed}
+        error={error}
+        renderCurrentView={renderCurrentView}
+        handleReset={handleReset}
+        showForm={showForm}
+        optimizedItems={optimizedItems}
+      />
 
       {/* Подвал */}
       <footer className="bg-gray-50 border-t border-gray-200 mt-16">

@@ -1,10 +1,8 @@
-
 'use client';
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShoppingItem, StoreType } from '@/lib/types';
-import { getCategoryIcon } from '@/lib/store-data';
+import { ShoppingItem } from '@/lib/types';
 import ListItemEntry from './list-item-entry';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
@@ -13,7 +11,6 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 interface CategoryGroupProps {
   categoryName: string;
   items: ShoppingItem[];
-  storeType: StoreType;
   onToggleItem: (itemId: string) => void;
   onDeleteItem?: (itemId: string) => void;
   categoryIndex: number;
@@ -24,7 +21,6 @@ interface CategoryGroupProps {
 const CategoryGroup: React.FC<CategoryGroupProps> = ({
   categoryName,
   items,
-  storeType,
   onToggleItem,
   onDeleteItem,
   categoryIndex,
@@ -37,7 +33,8 @@ const CategoryGroup: React.FC<CategoryGroupProps> = ({
   // Use the external state if provided, otherwise use internal state
   const isExpanded = externalIsExpanded !== undefined ? externalIsExpanded : internalIsExpanded;
   
-  const iconName = getCategoryIcon(categoryName, storeType);
+  // Use a default icon for now, since storeType is removed
+  const iconName = 'Package';
   const IconComponent = (Icons as any)[iconName] || Icons.Package;
   
   const completedCount = items.filter(item => item.purchased).length;

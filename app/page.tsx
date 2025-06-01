@@ -19,6 +19,7 @@ import { ListPlus } from 'lucide-react';
 interface Store {
   id: string;
   name: string;
+  // storeType?: string; // Keep if needed elsewhere, but not for OptimizedListView's storeName
 }
 
 // App state enum for better state management
@@ -48,56 +49,70 @@ export default function HomePage() {
   const [availableStores, setAvailableStores] = useState<Store[]>([]); // Initialize as empty array
   const [selectedStoreId, setSelectedStoreId] = useState<string>(''); // For the Select component in the form
   const [isEditingExistingList, setIsEditingExistingList] = useState<boolean>(false); // Track if we're editing an existing list
-  
+  const [currentStoreName, setCurrentStoreName] = useState<string>('Загрузка магазина...');
+
   // Saved lists state
   const [savedLists, setSavedLists] = useState<any[]>([]);
   const [isLoadingSavedLists, setIsLoadingSavedLists] = useState<boolean>(false);
 
   // Load available stores on component mount
   useEffect(() => {
-    const fetchStores = async () => {
-      // Don't refetch if stores are already loaded
-      if (availableStores.length > 0) {
-        console.log('Stores already loaded, skipping fetch');
-        return;
-      }
-      
-      try {
-        // Import here to avoid circular dependencies
-        const { getStores } = await import('@/lib/api-client');
-        
-        const stores = await getStores();
-        console.log('Fetched stores:', stores);
-        setAvailableStores(stores);
-        
-        // Only set default store if no store is currently selected
-        if (stores.length > 0 && !selectedStoreId) {
-          console.log('Setting default store to:', stores[0].id);
-          setSelectedStoreId(stores[0].id);
-        } else {
-          console.log('Keeping current selectedStoreId:', selectedStoreId);
+    const fetchStoresLogic = async () => {
+      if (availableStores.length === 0) {
+        // Fetch stores only if they are not loaded
+        console.log('Fetching stores as availableStores is empty...');
+        try {
+          // Import here to avoid circular dependencies
+          const { getStores } = await import('@/lib/api-client');
+          const fetchedStores = await getStores();
+          console.log('Fetched stores:', fetchedStores);
+          setAvailableStores(fetchedStores); // Update state with fetched stores
+
+          // After fetching, if no store is selected and current state is CREATE_NEW, set default
+          if (fetchedStores.length > 0 && !selectedStoreId && appState === AppState.CREATE_NEW) {
+            console.log('Setting default store for CREATE_NEW after successful fetch:', fetchedStores[0].id);
+            setSelectedStoreId(fetchedStores[0].id);
+          }
+        } catch (error) {
+          console.error('Error fetching stores, using fallback:', error);
+          const defaultStoresOnError = [
+            { id: 'lidl', name: 'Lidl' },
+            { id: 'biedronka', name: 'Biedronka' },
+            { id: 'aldi', name: 'Aldi' }
+          ];
+          setAvailableStores(defaultStoresOnError);
+          // After setting fallback, if no store is selected and current state is CREATE_NEW, set default
+          if (defaultStoresOnError.length > 0 && !selectedStoreId && appState === AppState.CREATE_NEW) {
+            console.log('Setting default store from fallback for CREATE_NEW:', defaultStoresOnError[0].id);
+            setSelectedStoreId(defaultStoresOnError[0].id);
+          }
         }
-      } catch (error) {
-        console.error('Error fetching stores:', error);
-        // Create some default stores if API fails
-        const defaultStores = [
-          { id: 'lidl', name: 'Lidl' },
-          { id: 'biedronka', name: 'Biedronka' },
-          { id: 'aldi', name: 'Aldi' }
-        ];
-        console.log('Using default stores:', defaultStores);
-        setAvailableStores(defaultStores);
-        // Only set default if no store selected
-        if (!selectedStoreId) {
-          setSelectedStoreId(defaultStores[0].id);
+      } else {
+        // Stores are already loaded. Check if we are in CREATE_NEW and no store is selected.
+        if (appState === AppState.CREATE_NEW && !selectedStoreId && availableStores.length > 0) {
+          console.log('Stores already loaded, in CREATE_NEW, no selection. Setting default:', availableStores[0].id);
+          setSelectedStoreId(availableStores[0].id);
         }
       }
     };
-    
+
+    // Trigger the logic if app is in a state that requires stores
     if (appState === AppState.CREATE_NEW || appState === AppState.OPTIMIZED) {
-      fetchStores();
+      fetchStoresLogic();
     }
-  }, [appState, selectedStoreId, availableStores.length]);
+  }, [appState, selectedStoreId, availableStores.length]); // Dependencies
+
+  // New useEffect to update currentStoreName when selectedStoreId or availableStores change
+  useEffect(() => {
+    if (selectedStoreId && availableStores.length > 0) {
+      const store = availableStores.find(s => s.id === selectedStoreId);
+      setCurrentStoreName(store ? store.name : 'Магазин не найден');
+    } else if (availableStores.length === 0 && selectedStoreId) {
+      setCurrentStoreName('Загрузка списка магазинов...');
+    } else if (!selectedStoreId) {
+      setCurrentStoreName('Магазин не выбран');
+    }
+  }, [selectedStoreId, availableStores]);
 
   // Load saved lists when user is selected
   const loadSavedLists = useCallback(async () => {
@@ -275,13 +290,19 @@ export default function HomePage() {
   const handleCreateNew = useCallback(() => {
     setRawText('');
     setListName('');
+    // Reset selected store to default or first available when creating a new list
+    if (availableStores.length > 0) {
+      setSelectedStoreId(availableStores[0].id);
+    } else {
+      setSelectedStoreId(''); // Or handle case where no stores are available
+    }
     setOptimizedItems([]);
     setIsOptimized(false);
     setError(null);
     setIsAIProcessed(false);
     setIsEditingExistingList(false);
     setAppState(AppState.CREATE_NEW);
-  }, []);
+  }, [availableStores]);
 
   const handleSelectSavedList = useCallback((list: any) => {
     // Convert saved list to current format
@@ -293,30 +314,30 @@ export default function HomePage() {
     setIsAIProcessed(true); // Assume saved lists were AI processed
     setListName(list.name);
     
-    // Set the correct store ID from the saved list
-    // In the database, storeId is saved
-    const savedStoreId = list.storeId;
-    console.log('=== LOADING SAVED LIST ===');
-    console.log('list.storeId:', list.storeId);
-    console.log('Setting store from saved list:', savedStoreId);
-    console.log('Available stores:', availableStores);
-    
-    // Verify that the store exists in our available stores
-    const storeExists = availableStores.find(s => s.id === savedStoreId);
-    if (storeExists) {
-      console.log('Found matching store:', storeExists);
-      setSelectedStoreId(savedStoreId);
-    } else {
-      console.warn('Store not found in available stores, setting to first available');
-      if (availableStores.length > 0) {
-        setSelectedStoreId(availableStores[0].id);
+    const savedStoreId = list.storeId; // e.g., Lidl's ID
+    console.log('=== LOADING SAVED LIST (Revised Logic) ===');
+    console.log('list.storeId from saved list:', savedStoreId);
+    console.log('Current availableStores when selecting list:', availableStores);
+
+    // Always set selectedStoreId to the ID from the saved list.
+    // The useEffect for currentStoreName will handle resolving the name
+    // once availableStores is populated.
+    setSelectedStoreId(savedStoreId);
+    console.log('Set selectedStoreId directly to:', savedStoreId);
+
+    // Optional: Log a warning if stores are loaded but the specific ID isn't found yet,
+    // or if stores are not loaded yet. The name will update reactively.
+    if (availableStores.length > 0) {
+      const storeExistsNow = availableStores.find(s => s.id === savedStoreId);
+      if (!storeExistsNow) {
+        console.warn(`Store with ID ${savedStoreId} not found in currently loaded availableStores. Name should update once stores fully sync or if ID is valid.`);
       }
+    } else {
+      console.log('Available stores are currently empty. Store name will update after stores load, using selectedStoreId:', savedStoreId);
     }
     
-    // Reset editing flag when selecting saved list (this will be a fresh load)
     setIsEditingExistingList(false);
-    
-    setAppState(AppState.OPTIMIZED);
+    setAppState(AppState.OPTIMIZED); // Switch state after all updates
   }, [availableStores]);
 
   const handleRefreshSavedLists = useCallback(() => {
@@ -475,7 +496,7 @@ export default function HomePage() {
                   setListName={setListName}
                   availableStores={availableStores}
                   onAddStore={handleAddStore}
-                  selectedStoreId={selectedStoreId}
+                  selectedStoreId={selectedStoreId} // Pass selectedStoreId
                   setSelectedStoreId={setSelectedStoreId}
                   isLoading={isLoading}
                   onReset={handleReset}
@@ -494,7 +515,7 @@ export default function HomePage() {
             >
               <OptimizedListView
                 items={optimizedItems}
-                storeType={availableStores.find(s => s.id === selectedStoreId)?.name || selectedStoreId as any}
+                storeName={currentStoreName} // Use the new state variable here
                 onToggleItem={handleToggleItem}
                 onDeleteItem={handleDeleteItem}
                 onReset={handleReset}

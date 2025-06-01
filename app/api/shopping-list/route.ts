@@ -549,7 +549,9 @@ export async function POST(request: Request) {
 
     // Get store name by ID for response
     let storeName = 'Unknown Store';
-    if (storeId) {
+    if (shoppingList.store && shoppingList.store.name) {
+      storeName = shoppingList.store.name;
+    } else if (storeId) {
       const store = await prisma.store.findUnique({ where: { id: storeId } });
       if (store) {
         storeName = store.name;

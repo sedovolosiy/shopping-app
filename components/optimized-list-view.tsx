@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShoppingItem, StoreType } from '@/lib/types';
-import { groupItemsByCategory, getCategoryOrder, STORE_CONFIGS } from '@/lib/store-data';
+import { ShoppingItem } from '@/lib/types';
+import { groupItemsByCategory } from '@/lib/store-data';
 import CategoryGroup from './category-group';
 import { motion } from 'framer-motion';
 import { Route, RotateCcw, CheckCircle2, Circle, ChevronsUpDown, Edit, ListPlus } from 'lucide-react';
@@ -12,17 +12,17 @@ import { AITag } from './ai-status';
 
 interface OptimizedListViewProps {
   items: ShoppingItem[];
-  storeType: StoreType;
+  storeName: string; // Имя магазина для отображения
   onToggleItem: (itemId: string) => void;
   onDeleteItem?: (itemId: string) => void;
   onReset: () => void;
   isAIProcessed?: boolean;
-  onToggleForm?: () => void; // Add ability to toggle form visibility
+  onToggleForm?: () => void;
 }
 
 const OptimizedListView: React.FC<OptimizedListViewProps> = ({
   items,
-  storeType,
+  storeName,
   onToggleItem,
   onDeleteItem,
   onReset,
@@ -30,17 +30,9 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
   onToggleForm
 }) => {
   const [expandAll, setExpandAll] = useState<boolean>(true);
-  
   const groupedItems = groupItemsByCategory(items);
-  const categoryOrder = getCategoryOrder(storeType);
-  const storeConfig = STORE_CONFIGS[storeType as keyof typeof STORE_CONFIGS]; // Added type assertion
-  
-  // Сортируем категории по порядку маршрута
-  const sortedCategories = Object.keys(groupedItems).sort((a, b) => {
-    const orderA = categoryOrder[a] || 999;
-    const orderB = categoryOrder[b] || 999;
-    return orderA - orderB;
-  });
+  // Сортировка категорий по алфавиту (или оставить без сортировки)
+  const sortedCategories = Object.keys(groupedItems).sort();
 
   const totalItems = items.length;
   const completedItems = items.filter(item => item.purchased).length;
@@ -62,8 +54,7 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Route className="h-6 w-6" />
-              {/* Add a check for storeConfig before accessing displayName */}
-              <span>Оптимальный маршрут для {storeConfig ? storeConfig.displayName : storeType}</span>
+              <span>Оптимальный маршрут для {storeName}</span>
               {isAIProcessed && <AITag isActive={true} />}
             </div>
             <div className="flex gap-2">
@@ -165,12 +156,11 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
             key={categoryName}
             categoryName={categoryName}
             items={groupedItems[categoryName]}
-            storeType={storeType}
             onToggleItem={onToggleItem}
             onDeleteItem={onDeleteItem}
             categoryIndex={index}
             isExpanded={expandAll}
-            onToggleExpand={() => {}} // Empty function since we're controlling from parent
+            onToggleExpand={() => {}}
           />
         ))}
       </div>
@@ -180,12 +170,10 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
         <CardContent className="pt-6">
           <div className="text-center text-sm text-gray-600">
             <p className="mb-2">
-              {/* Add a check for storeConfig before accessing displayName */}
-              <strong>Совет:</strong> Следуйте порядку категорий сверху вниз для оптимального маршрута в {storeConfig ? storeConfig.displayName : storeType}
+              <strong>Совет:</strong> Следуйте порядку категорий сверху вниз для оптимального маршрута в {storeName}
             </p>
             <p className="text-xs text-gray-500">
-              {/* Add a check for storeConfig before accessing displayName */}
-              Маршрут основан на типичной планировке магазинов {storeConfig ? storeConfig.displayName : storeType}
+              Маршрут основан на типичной планировке магазинов {storeName}
             </p>
           </div>
         </CardContent>

@@ -6,25 +6,25 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Start seeding stores...");
 
-  // Array of store names to add
-  const storeNames = [
-    "Lidl",
-    "Aldi",
-    "Biedronka",
-    "Auchan",
-    "Carrefour",
-    "Makro",
+  // Array of store objects to add
+  const storeData = [
+    { name: "Lidl", type: "lidl" },
+    { name: "Aldi", type: "aldi" },
+    { name: "Biedronka", type: "biedronka" },
+    { name: "Auchan", type: "auchan" },
+    { name: "Carrefour", type: "carrefour" },
+    { name: "Makro", type: "makro" },
   ];
 
   // Create stores one by one, skipping if they already exist
-  for (const name of storeNames) {
+  for (const { name, type } of storeData) {
     const existingStore = await prisma.store.findUnique({
       where: { name },
     });
 
     if (!existingStore) {
       const store = await prisma.store.create({
-        data: { name },
+        data: { name, type },
       });
       console.log(`Created store: ${store.name} (${store.id})`);
     } else {

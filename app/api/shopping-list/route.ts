@@ -40,96 +40,106 @@ async function processItemsWithAI(rawText: string): Promise<Array<{ originalText
     { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
   ];
 
-  // Оптимизированный промпт без требования перевода и с инструкциями по разделению нескольких товаров в одной строке
+  // Optimized prompt without translation requirement and with instructions for splitting multiple items in one line
   const prompt = `
-Вы помощник по обработке списков покупок.
-Преобразуйте текстовый список покупок в структурированный JSON-массив.
+You are a shopping list processing assistant.
+Convert a text-based shopping list into a structured JSON array.
 
-ОЧЕНЬ ВАЖНО: Если в одной строке перечислено несколько товаров через пробел (например, "Носки сосиски ser zloty"), 
-определите их как отдельные продукты и создайте для каждого свой JSON-объект. 
-Разбивайте строку на отдельные продукты, основываясь на:
-- Смысловых различиях между словами
-- Изменении языка (например, русский/польский/английский)
-- Явной смене категорий товаров (например, одежда -> продукты)
+VERY IMPORTANT: If a single line lists multiple items separated by spaces (e.g., "Socks sausages ser zloty"),
+identify them as separate products and create a distinct JSON object for each.
+Split the line into individual products based on:
+- Semantic differences between words
+- Change of language (e.g., Russian/Polish/English)
+- Clear change in product categories (e.g., clothing -> food)
 
-Для каждого продукта из списка:
+For each product from the list:
 
-1. originalText: Точный текст продукта без маркеров списка
-   - Уберите маркеры списка (* • -) и нумерацию
-   - Сохраните детали (количество, бренд) в скобках, кавычках и т.д.
-   - Если несколько товаров в одной строке, originalText должен содержать только конкретный товар
+1. originalText: The exact text of the product without list markers
+   - Remove list markers (* • -) and numbering
+   - Preserve details (quantity, brand) in parentheses, quotes, etc.
+   - If multiple items are in one line, originalText should only contain the specific item
 
-2. normalizedText: Стандартизированное название продукта
-   - НЕ ПЕРЕВОДИТЕ на другие языки
-   - Включите количество, упаковку и информацию о бренде
-   - Сохраните контекст: "по акции", специальные пометки
-   - Пример: "Бедрышки куриные (2 пачки)" -> "Бедрышки куриные 2 пачки"
+2. normalizedText: Standardized product name
+   - DO NOT TRANSLATE to other languages
+   - Include quantity, packaging, and brand information
+   - Preserve context: "on sale", special notes
+   - Convert colloquial or regional names to their standard, commonly accepted names **within the detected language of the product**. For example, if the product is in Russian and says "синенькие", it should be normalized to "баклажаны" (Russian for eggplant), not "eggplant" (English). If an English item is "blue ones", it can be normalized to "eggplant".
+   - For quantity and unit information, \`normalizedText\` should incorporate the standardized numeric quantity and the common unit abbreviation appropriate for the detected language (e.g., "0.5 кг" for Russian "полкило", "10 шт" for Russian "десяток"). These converted forms should be used directly in the \`normalizedText\` string, aligning with the values that will be placed in the separate \`quantity\` and \`unit\` fields.
+   - Examples:
+     - English input: "Chicken thighs (2 packs)" -> "Chicken thighs 2 packs"
+     - Russian input: "яблоки голден полкило" -> "яблоки голден 0.5 кг"
+     - Russian input: "Мука (полкило)" -> "Мука 0.5 кг"
+     - Russian input: "Яйца (десяток)" -> "Яйца 10 шт"
 
-3. category: Категория из этого списка: ${GENERAL_CATEGORIES.join(', ')}
-   - Если нет подходящей, используйте "Other"
+3. category: Category from this list: ${GENERAL_CATEGORIES.join(', ')}
+   - If no suitable category, use "Other"
 
-4. quantity: Количество продукта
-   - Если указано, извлеките его (например, "2 кг", "1 шт")
-   - Если не указано, используйте "1"
-   - Для "несколько" используйте "3"
-   - Преобразуйте: "полкило" -> "0.5", "десяток" -> "10"
+4. quantity: Product quantity
+   - If specified, extract it (e.g., "2 kg", "1 pc")
+   - If not specified, use "1"
+   - For "several" or "a few", use "3"
+   - Convert: "half a kilo" -> "0.5", "a dozen" -> "10"
 
-5. unit: Единица измерения количества
-   - Общие: "kg", "g", "l", "ml", "pcs", "bottles", "cans", "packages"
-   - Переведите: "шт" -> "pcs", "пачки" -> "packages", "бутылки" -> "bottles"
-   - Если не указано, используйте "unit"
+5. unit: Unit of measurement for the quantity
+   - Common: "kg", "g", "l", "ml", "pcs", "bottles", "cans", "packages"
+   - Translate common local units: "шт" (sht) -> "pcs", "пачки" (pachki) -> "packages", "бутылки" (butylki) -> "bottles"
+   - If not specified, use "unit"
 
-6. language: Основной язык текста продукта (например, "en", "ru", "pl")
+6. language: Main language of the product text (e.g., "en", "ru", "pl")
 
-Формат вывода - валидный JSON-массив с полями: "originalText", "normalizedText", "category", "quantity", "unit", "language".
+Output format - a valid JSON array with fields: "originalText", "normalizedText", "category", "quantity", "unit", "language".
 
-Пример входа:
-"* Картошка (2 кг)
-* Помидоры "черри"
-* Яйца куриные С0 (по акции)
-* Носки сосиски ser zloty"
+Input example:
+"* Potatoes (2 kg)
+* Cherry tomatoes
+* Chicken eggs C0 (on sale)
+* Socks sausages ser zloty
+* Blue ones (for salad)
+* Синенькие (на салат)
+* Мука (полкило)
+* яблоки голден полкило"
 
-Ожидаемый выход (JSON):
+Expected output (JSON):
 [
   {
-    "originalText": "Картошка (2 кг)",
-    "normalizedText": "Картошка 2 кг",
+    "originalText": "Potatoes (2 kg)",
+    "normalizedText": "Potatoes 2 kg",
     "category": "Fresh Produce",
     "quantity": "2",
     "unit": "kg",
     "language": "ru"
   },
   {
-    "originalText": "Помидоры \"черри\"",
-    "normalizedText": "Помидоры черри",
+    "originalText": "Cherry tomatoes",
+    "normalizedText": "Cherry tomatoes",
     "category": "Fresh Produce",
     "quantity": "1",
     "unit": "unit",
-    "language": "ru"
+    "language": "en"
   },
   {
-    "originalText": "Яйца куриные С0 (по акции)",
-    "normalizedText": "Яйца куриные С0 по акции",
+    "originalText": "Chicken eggs C0 (on sale)",
+    "normalizedText": "Chicken eggs C0 on sale",
     "category": "Dairy & Eggs",
     "quantity": "1",
     "unit": "unit",
     "language": "ru"
   },
   {
-    "originalText": "Носки",
-    "normalizedText": "Носки",
+    "originalText": "Socks",
+    "normalizedText": "Socks",
     "category": "Other",
     "quantity": "1",
     "unit": "unit",
-    "language": "ru"
+    "language": "en"
   },
   {
-    "originalText": "сосиски",
-    "normalizedText": "сосиски",
+    "originalText": "sausages",
+    "normalizedText": "sausages",
     "category": "Meat & Poultry",
     "quantity": "1",
     "unit": "unit",
-    "language": "ru"
+    "language": "en"
   },
   {
     "originalText": "ser zloty",
@@ -138,13 +148,45 @@ async function processItemsWithAI(rawText: string): Promise<Array<{ originalText
     "quantity": "1",
     "unit": "unit",
     "language": "pl"
+  },
+  {
+    "originalText": "Blue ones (for salad)",
+    "normalizedText": "Eggplant for salad",
+    "category": "Fresh Produce",
+    "quantity": "1",
+    "unit": "unit",
+    "language": "en"
+  },
+  {
+    "originalText": "Синенькие (на салат)",
+    "normalizedText": "Баклажаны на салат",
+    "category": "Fresh Produce",
+    "quantity": "1",
+    "unit": "unit",
+    "language": "ru"
+  },
+  {
+    "originalText": "Мука (полкило)",
+    "normalizedText": "Мука 0.5 кг",
+    "category": "Pantry Staples",
+    "quantity": "0.5",
+    "unit": "kg",
+    "language": "ru"
+  },
+  {
+    "originalText": "яблоки голден полкило",
+    "normalizedText": "яблоки голден 0.5 кг",
+    "category": "Fresh Produce",
+    "quantity": "0.5",
+    "unit": "kg",
+    "language": "ru"
   }
 ]
 
-Обработайте следующий список покупок:
---- НАЧАЛО ВХОДНЫХ ДАННЫХ ---
+Process the following shopping list:
+--- START OF INPUT DATA ---
 ${rawText}
---- КОНЕЦ ВХОДНЫХ ДАННЫХ ---
+--- END OF INPUT DATA ---
 `;
 
   try {
@@ -401,7 +443,7 @@ const shoppingListCreateSchema = z.object({
   rawText: z.string().min(1, 'Raw text cannot be empty'),
   userId: z.string().min(1, 'User ID cannot be empty'), // Or some other user identifier
   listName: z.string().optional(),
-  storeId: z.string().optional(), // Store ID to associate with this shopping list
+  storeId: z.string().optional() // Store ID to associate with this shopping list
 });
 
 export async function POST(request: Request) {

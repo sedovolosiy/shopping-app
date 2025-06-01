@@ -10,7 +10,7 @@ export const STORE_CONFIGS: StoreConfigs = {
     displayName: 'Lidl',
     categories: [
       {
-        name: 'Свежие продукты',
+        name: 'Fresh Produce',
         order: 1,
         icon: 'apple',
         keywords: [
@@ -20,7 +20,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Хлебобулочные изделия',
+        name: 'Bakery',
         order: 2,
         icon: 'wheat',
         keywords: [
@@ -29,7 +29,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Молочные продукты',
+        name: 'Dairy & Eggs',
         order: 3,
         icon: 'milk',
         keywords: [
@@ -38,7 +38,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Мясные продукты',
+        name: 'Meat & Poultry',
         order: 4,
         icon: 'beef',
         keywords: [
@@ -47,7 +47,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Замороженные продукты',
+        name: 'Frozen Foods',
         order: 5,
         icon: 'snowflake',
         keywords: [
@@ -56,7 +56,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Сухие товары и консервы',
+        name: 'Pantry Staples',
         order: 6,
         icon: 'package',
         keywords: [
@@ -66,7 +66,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Напитки',
+        name: 'Beverages',
         order: 7,
         icon: 'coffee',
         keywords: [
@@ -75,7 +75,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Бытовая химия',
+        name: 'Household Supplies',
         order: 8,
         icon: 'spray-can',
         keywords: [
@@ -85,7 +85,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Импульсивные покупки',
+        name: 'Snacks',
         order: 9,
         icon: 'candy',
         keywords: [
@@ -100,7 +100,7 @@ export const STORE_CONFIGS: StoreConfigs = {
     displayName: 'Biedronka',
     categories: [
       {
-        name: 'Свежие продукты',
+        name: 'Fresh Produce',
         order: 1,
         icon: 'apple',
         keywords: [
@@ -110,7 +110,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Мясные продукты',
+        name: 'Meat & Poultry',
         order: 2,
         icon: 'beef',
         keywords: [
@@ -119,7 +119,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Молочные продукты',
+        name: 'Dairy & Eggs',
         order: 3,
         icon: 'milk',
         keywords: [
@@ -128,7 +128,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Хлебобулочные изделия',
+        name: 'Bakery',
         order: 4,
         icon: 'wheat',
         keywords: [
@@ -137,7 +137,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Сухие товары и консервы',
+        name: 'Pantry Staples',
         order: 5,
         icon: 'package',
         keywords: [
@@ -147,7 +147,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Напитки',
+        name: 'Beverages',
         order: 6,
         icon: 'coffee',
         keywords: [
@@ -156,7 +156,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Бытовая химия',
+        name: 'Household Supplies',
         order: 7,
         icon: 'spray-can',
         keywords: [
@@ -166,7 +166,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Сезонные товары',
+        name: 'Other',
         order: 8,
         icon: 'gift',
         keywords: [
@@ -175,7 +175,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Промо-зона',
+        name: 'Snacks',
         order: 9,
         icon: 'candy',
         keywords: [
@@ -190,7 +190,7 @@ export const STORE_CONFIGS: StoreConfigs = {
     displayName: 'Aldi',
     categories: [
       {
-        name: 'Сухие товары и консервы',
+        name: 'Pantry Staples',
         order: 1,
         icon: 'package',
         keywords: [
@@ -200,7 +200,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Молочные продукты',
+        name: 'Dairy & Eggs',
         order: 2,
         icon: 'milk',
         keywords: [
@@ -209,7 +209,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Замороженные продукты',
+        name: 'Frozen Foods',
         order: 3,
         icon: 'snowflake',
         keywords: [
@@ -219,7 +219,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Снеки и напитки',
+        name: 'Snacks',
         order: 4,
         icon: 'coffee',
         keywords: [
@@ -228,7 +228,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Aldi Finds (Сезонные товары)',
+        name: 'Other',
         order: 5,
         icon: 'gift',
         keywords: [
@@ -237,7 +237,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Свежие продукты',
+        name: 'Fresh Produce',
         order: 6,
         icon: 'apple',
         keywords: [
@@ -247,7 +247,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Хлебобулочные изделия',
+        name: 'Bakery',
         order: 7,
         icon: 'wheat',
         keywords: [
@@ -256,7 +256,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Мясные продукты',
+        name: 'Meat & Poultry',
         order: 8,
         icon: 'beef',
         keywords: [
@@ -265,7 +265,7 @@ export const STORE_CONFIGS: StoreConfigs = {
         ]
       },
       {
-        name: 'Импульсивные покупки',
+        name: 'Snacks',
         order: 9,
         icon: 'candy',
         keywords: [

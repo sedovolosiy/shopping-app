@@ -32,6 +32,8 @@ interface ShoppingListFormProps {
   isLoading?: boolean; // Added to show spinner while waiting for server response
   onReset?: () => void; // Added to handle "New List" functionality
   isEditingExistingList?: boolean; // Added to show if we're editing an existing list
+  useAI: boolean; // Новый проп для AI режима
+  setUseAI: (v: boolean) => void; // Новый проп для управления AI
 }
 
 const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
@@ -50,6 +52,8 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
   isLoading = false,
   onReset,
   isEditingExistingList = false,
+  useAI,
+  setUseAI
 }) => {
   const [newStoreName, setNewStoreName] = React.useState('');
   const [isAddingStore, setIsAddingStore] = React.useState(false);
@@ -110,8 +114,20 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
           }
         </CardDescription>
       </CardHeader>
-      
       <CardContent className="space-y-6 p-6">
+        {/* AI toggle inside the form */}
+        <div className="flex items-center gap-2 mb-2">
+          <label htmlFor="ai-toggle-form" className="text-sm font-medium text-gray-700">AI:</label>
+          <input
+            id="ai-toggle-form"
+            type="checkbox"
+            checked={useAI}
+            onChange={() => setUseAI(!useAI)}
+            className="accent-blue-600 h-4 w-4"
+          />
+          <span className="text-xs text-gray-500">{useAI ? 'Включен' : 'Выключен'}</span>
+        </div>
+
         {/* User Identifier Input - Simple version for now */}
         <div className="space-y-2">
           <Label htmlFor="user-id" className="text-base font-semibold">

@@ -55,6 +55,9 @@ export default function HomePage() {
   const [savedLists, setSavedLists] = useState<any[]>([]);
   const [isLoadingSavedLists, setIsLoadingSavedLists] = useState<boolean>(false);
 
+  // AI toggle state
+  const [useAI, setUseAI] = useState<boolean>(true); // AI enabled by default
+
   // Load available stores on component mount
   useEffect(() => {
     const fetchStoresLogic = async () => {
@@ -172,28 +175,37 @@ export default function HomePage() {
     
     setIsLoading(true);
     setError(null);
-    
     try {
       // Import here to avoid circular dependencies
       const { processShoppingListWithAPI } = await import('@/lib/api-client');
-      
-      // Try to use the API for processing (with AI if available)
-      const apiResponse = await processShoppingListWithAPI(
-        rawText,
-        currentUserIdParam || currentUserId,
-        currentListName || listName,
-        selectedStoreId
-      );
+      let apiResponse;
+      if (useAI) {
+        // Обычный вызов API с AI
+        apiResponse = await processShoppingListWithAPI(
+          rawText,
+          currentUserIdParam || currentUserId,
+          currentListName || listName,
+          selectedStoreId
+        );
+      } else {
+        // Локальная обработка без AI
+        const storeForProcessing = availableStores.find(s => s.id === selectedStoreId)?.name || 'default';
+        const processedItems = processShoppingList(rawText, storeForProcessing as any);
+        setOptimizedItems(processedItems);
+        setIsOptimized(true);
+        setAppState(AppState.OPTIMIZED);
+        setShowForm(false);
+        setIsEditingExistingList(false);
+        setIsAIProcessed(false);
+        setIsLoading(false);
+        return;
+      }
       
       // API returns items in the correct format
       setOptimizedItems(apiResponse.items);
       setIsOptimized(true);
       setAppState(AppState.OPTIMIZED);
-      
-      // Hide form after successful optimization
       setShowForm(false);
-      
-      // Reset editing flag after successful update
       setIsEditingExistingList(false);
       
       // Update AI processing status
@@ -225,18 +237,13 @@ export default function HomePage() {
       setOptimizedItems(processedItems);
       setIsOptimized(true);
       setAppState(AppState.OPTIMIZED);
-      
-      // Hide form after successful optimization
       setShowForm(false);
-      
-      // Reset editing flag after successful update
       setIsEditingExistingList(false);
-      
       setIsAIProcessed(false);
     } finally {
       setIsLoading(false);
     }
-  }, [rawText, selectedStoreId, availableStores, currentUserId, listName, isEditingExistingList]);
+  }, [rawText, selectedStoreId, availableStores, currentUserId, listName, isEditingExistingList, useAI]);
 
   // Define handleReset first
   const handleReset = useCallback(() => {
@@ -467,6 +474,8 @@ export default function HomePage() {
                 isLoading={isLoading}
                 onReset={handleReset}
                 isEditingExistingList={isEditingExistingList}
+                useAI={useAI}
+                setUseAI={setUseAI}
               />
             </motion.div>
           </div>
@@ -501,6 +510,8 @@ export default function HomePage() {
                   isLoading={isLoading}
                   onReset={handleReset}
                   isEditingExistingList={isEditingExistingList}
+                  useAI={useAI}
+                  setUseAI={setUseAI}
                 />
               </motion.div>
             )}
@@ -533,6 +544,19 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      {/* AI toggle switch */}
+      <div className="fixed top-4 right-4 z-50 flex items-center space-x-2 bg-white/80 px-4 py-2 rounded shadow">
+        <label htmlFor="ai-toggle" className="text-sm font-medium text-gray-700">AI:</label>
+        <input
+          id="ai-toggle"
+          type="checkbox"
+          checked={useAI}
+          onChange={() => setUseAI(v => !v)}
+          className="accent-blue-600 h-4 w-4"
+        />
+        <span className="text-xs text-gray-500">{useAI ? 'Включен' : 'Выключен'}</span>
+      </div>
+
       {/* Заголовок приложения */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
         <div className="container mx-auto px-4 py-4">

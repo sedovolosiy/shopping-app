@@ -1,6 +1,7 @@
 // AI processing service for shopping list
 import { parseAiJsonResponse } from '../utils/jsonParser';
 import { basicCategorize } from '../utils/itemCategorizer';
+import { SHOPPING_LIST_AI_PROMPT } from './aiPrompt';
 
 export async function processShoppingList(rawText: string): Promise<Array<{ originalText: string; normalizedText: string; category: string; quantity: string; unit: string; language: string }>> {
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
@@ -27,10 +28,10 @@ export async function processShoppingList(rawText: string): Promise<Array<{ orig
     'Frozen Foods', 'Pantry Staples', 'Snacks', 'Beverages', 'Household Supplies',
     'Personal Care', 'Baby Items', 'Pet Supplies', 'Other'
   ];
-  const prompt = `...`; // prompt можно вынести в отдельный файл/константу
+  const prompt = SHOPPING_LIST_AI_PROMPT(GENERAL_CATEGORIES, rawText);
   try {
     const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt.replace('${rawText}', rawText) }] }],
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig,
       safetySettings,
     });

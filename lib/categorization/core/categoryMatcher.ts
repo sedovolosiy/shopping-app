@@ -159,14 +159,14 @@ export class CategoryMatcher {
           }
         }
         
-        // Fuzzy matching - temporarily disabled for debugging
-        // const fuzzyMatches = this.fuzzyMatcher.findSimilar(features.normalizedText, pattern.keywords, 2);
-        // if (fuzzyMatches.length > 0) {
-        //   confidence += CATEGORIZATION_WEIGHTS.fuzzyMatch * fuzzyMatches[0].similarity;
-        //   matchedTerms.push(...fuzzyMatches.map(m => m.term));
-        //   matchType = 'fuzzy';
-        //   console.log(`✅ Fuzzy match in category "${category}":`, fuzzyMatches, `confidence: ${confidence}`);
-        // }
+        // Fuzzy matching - re-enabled
+        const fuzzyMatches = this.fuzzyMatcher.findSimilar(features.normalizedText, pattern.keywords, 2);
+        if (fuzzyMatches.length > 0) {
+          confidence += CATEGORIZATION_WEIGHTS.fuzzyMatch * fuzzyMatches[0].similarity;
+          matchedTerms.push(...fuzzyMatches.map(m => m.term));
+          matchType = 'fuzzy';
+          console.log(`✅ Fuzzy match in category "${category}":`, fuzzyMatches, `confidence: ${confidence}`);
+        }
         
         // Synonym matching
         const synonyms = pattern.synonyms[features.detectedLanguage] || [];

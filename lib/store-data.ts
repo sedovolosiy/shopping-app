@@ -1,4 +1,4 @@
-import { StoreConfigs, CategoryDefinition, ShoppingItem, StoreType } from './types';
+import { StoreConfigs, CategoryDefinition, ShoppingItem } from './types';
 
 // Конфигурации магазинов с категориями и ключевыми словами
 // ВАЖНО: Эта структура используется только для отображения категорий и 
@@ -340,38 +340,32 @@ export function processShoppingList(rawText: string, storeType: string): Shoppin
     }
   });
   
-  // Создаем базовые объекты без категоризации, 
-  // так как категоризацию должен выполнять AI через API Gemini
-  const uncategorizedItems = finalItems.map((item, index) => {
+  // Создаем объекты с категоризацией по ключевым словам (fallback)
+  const categorizedItems = finalItems.map((item, index) => {
     // Определяем только язык для правильного отображения
     const hasCyrillic = /[\u0400-\u04FF]/.test(item);
     const hasLatin = /[a-zA-Z]/.test(item);
-    
     let language = 'en'; // По умолчанию английский
     if (hasCyrillic && !hasLatin) {
       language = 'ru';
     } else if (hasCyrillic && hasLatin) {
-      // Смешанный текст, определяем по преобладающим символам
       const cyrillicCount = (item.match(/[\u0400-\u04FF]/g) || []).length;
       const latinCount = (item.match(/[a-zA-Z]/g) || []).length;
       language = cyrillicCount > latinCount ? 'ru' : 'en';
     }
-    
-    // Экранируем двойные кавычки для JSON
     const processedItem = item.replace(/"/g, '\\"');
-    
+    const { category, categoryOrder } = categorizeItem(processedItem, storeType);
     return {
       id: `item-${index}`,
       name: processedItem,
-      category: 'Не категоризировано', // Временная категория до обработки через AI
-      categoryOrder: 999,
+      category,
+      categoryOrder,
       purchased: false,
       originalText: processedItem,
       language
     };
   });
-  
-  return uncategorizedItems;
+  return categorizedItems;
 }
 
 // Функция для группировки товаров по категориям
@@ -415,3 +409,5 @@ export function getCategoryIcon(categoryName: string, storeType: string): string
   const category = storeConfig.categories.find(cat => cat.name === categoryName);
   return category?.icon || 'package';
 }
+
+// Для категоризации используйте store.name (например, 'lidl', 'aldi', 'biedronka') как второй аргумент

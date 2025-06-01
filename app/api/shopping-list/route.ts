@@ -421,6 +421,16 @@ export async function POST(request: Request) {
 
     const { rawText, userId, listName, storeId } = validation.data;
     console.log(`[POST_HANDLER] Processing for userId: ${userId}, listName: ${listName}, storeId: ${storeId || 'not provided'}`);
+    console.log(`[POST_HANDLER] Received storeId type: ${typeof storeId}, value: "${storeId}"`);
+    
+    // Check if storeId exists in database
+    if (storeId) {
+      const storeExists = await prisma.store.findUnique({ where: { id: storeId } });
+      console.log(`[POST_HANDLER] Store with ID "${storeId}" exists in DB:`, !!storeExists);
+      if (storeExists) {
+        console.log(`[POST_HANDLER] Store name: ${storeExists.name}`);
+      }
+    }
 
     // 1. Find or create the user
     let user = await prisma.user.findUnique({
@@ -454,47 +464,113 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'AI could not process any items from the list, or the list was empty after processing.' }, { status: 400 });
     }
     
-    console.log('[POST_HANDLER] AI processing successful. Creating shopping list in database...');
-    // 4. Create the ShoppingList and its ListItems
-    const shoppingList = await prisma.shoppingList.create({
-      data: {
-        name: listName || 'My Shopping List', // Provide a default name if not given
-        rawText: rawText, // Using rawText for the rawText field
-        storeType: storeId || 'default', // Using storeId as the storeType field
-        userId: user.id, // Ensure this is user.id, not the input userId string
-        items: {
-          create: processedItems.map(item => ({
-            originalText: item.originalText,
-            normalizedText: item.normalizedText,
-            category: item.category,
-            quantity: item.quantity,
-            unit: item.unit,
-            language: item.language,
-            name: item.normalizedText, // Using normalizedText as the name
-            categoryOrder: 0, // Default category order as 0
-          })),
-        },
+    console.log('[POST_HANDLER] AI processing successful. Creating or updating shopping list in database...');
+    
+    const finalListName = listName || 'My Shopping List';
+    
+    // Check if a list with this name already exists for this user
+    const existingList = await prisma.shoppingList.findFirst({
+      where: {
+        userId: user.id,
+        name: finalListName,
       },
       include: {
-        items: true, // Include items in the response
+        items: true,
       },
     });
-    console.log('[POST_HANDLER] Shopping list created successfully:', shoppingList.id);
+
+    let shoppingList;
+    if (existingList) {
+      console.log('[POST_HANDLER] Found existing list, updating...');
+      // Delete existing items first
+      await prisma.shoppingListItem.deleteMany({
+        where: {
+          shoppingListId: existingList.id,
+        },
+      });
+      
+      // Update the existing list with new data
+      shoppingList = await prisma.shoppingList.update({
+        where: {
+          id: existingList.id,
+        },
+        data: {
+          rawText: rawText,
+          storeType: storeId || 'default',
+          updatedAt: new Date(),
+          items: {
+            create: processedItems.map(item => ({
+              originalText: item.originalText,
+              normalizedText: item.normalizedText,
+              category: item.category,
+              quantity: item.quantity,
+              unit: item.unit,
+              language: item.language,
+              name: item.normalizedText,
+              categoryOrder: 0,
+            })),
+          },
+        },
+        include: {
+          items: true,
+        },
+      });
+      console.log('[POST_HANDLER] Shopping list updated successfully:', shoppingList.id);
+    } else {
+      console.log('[POST_HANDLER] Creating new shopping list...');
+      // 4. Create the ShoppingList and its ListItems
+      shoppingList = await prisma.shoppingList.create({
+        data: {
+          name: finalListName,
+          rawText: rawText,
+          storeType: storeId || 'default',
+          userId: user.id,
+          items: {
+            create: processedItems.map(item => ({
+              originalText: item.originalText,
+              normalizedText: item.normalizedText,
+              category: item.category,
+              quantity: item.quantity,
+              unit: item.unit,
+              language: item.language,
+              name: item.normalizedText,
+              categoryOrder: 0,
+            })),
+          },
+        },
+        include: {
+          items: true,
+        },
+      });
+      console.log('[POST_HANDLER] Shopping list created successfully:', shoppingList.id);
+    }
+
+    // Get store name by ID for response
+    let storeName = 'Unknown Store';
+    if (storeId) {
+      const store = await prisma.store.findUnique({ where: { id: storeId } });
+      if (store) {
+        storeName = store.name;
+        console.log('[POST_HANDLER] Found store name:', storeName);
+      }
+    }
 
     // Format response to match the expected ShoppingListResponse interface
     const response = {
       success: true,
-      message: "Shopping list processed successfully",
+      message: existingList ? "Shopping list updated successfully" : "Shopping list created successfully",
       items: shoppingList.items,
       metadata: {
         totalItems: shoppingList.items.length,
         userId: shoppingList.userId || "unknown",
         listName: shoppingList.name,
-        storeName: shoppingList.storeType,
-        processedWith: 'ai' // Assuming all processing is done with AI since we called processItemsWithAI
+        storeName: storeName,
+        processedWith: 'ai', // Assuming all processing is done with AI since we called processItemsWithAI
+        action: existingList ? 'updated' : 'created', // Add action type to metadata
       }
     };
     console.log('[POST_HANDLER] Response storeType:', shoppingList.storeType);
+    console.log('[POST_HANDLER] Response storeName:', storeName);
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {

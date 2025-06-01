@@ -47,6 +47,7 @@ export default function HomePage() {
   const [listName, setListName] = useState<string>('');
   const [availableStores, setAvailableStores] = useState<Store[]>([]); // Initialize as empty array
   const [selectedStoreId, setSelectedStoreId] = useState<string>(''); // For the Select component in the form
+  const [isEditingExistingList, setIsEditingExistingList] = useState<boolean>(false); // Track if we're editing an existing list
   
   // Saved lists state
   const [savedLists, setSavedLists] = useState<any[]>([]);
@@ -55,16 +56,26 @@ export default function HomePage() {
   // Load available stores on component mount
   useEffect(() => {
     const fetchStores = async () => {
+      // Don't refetch if stores are already loaded
+      if (availableStores.length > 0) {
+        console.log('Stores already loaded, skipping fetch');
+        return;
+      }
+      
       try {
         // Import here to avoid circular dependencies
         const { getStores } = await import('@/lib/api-client');
         
         const stores = await getStores();
+        console.log('Fetched stores:', stores);
         setAvailableStores(stores);
         
-        // If there are stores available, select the first one by default
-        if (stores.length > 0) {
+        // Only set default store if no store is currently selected
+        if (stores.length > 0 && !selectedStoreId) {
+          console.log('Setting default store to:', stores[0].id);
           setSelectedStoreId(stores[0].id);
+        } else {
+          console.log('Keeping current selectedStoreId:', selectedStoreId);
         }
       } catch (error) {
         console.error('Error fetching stores:', error);
@@ -74,15 +85,19 @@ export default function HomePage() {
           { id: 'biedronka', name: 'Biedronka' },
           { id: 'aldi', name: 'Aldi' }
         ];
+        console.log('Using default stores:', defaultStores);
         setAvailableStores(defaultStores);
-        setSelectedStoreId(defaultStores[0].id);
+        // Only set default if no store selected
+        if (!selectedStoreId) {
+          setSelectedStoreId(defaultStores[0].id);
+        }
       }
     };
     
     if (appState === AppState.CREATE_NEW || appState === AppState.OPTIMIZED) {
       fetchStores();
     }
-  }, [appState]);
+  }, [appState, selectedStoreId, availableStores.length]);
 
   // Load saved lists when user is selected
   const loadSavedLists = useCallback(async () => {
@@ -131,6 +146,15 @@ export default function HomePage() {
   const handleOptimize = useCallback(async (currentUserIdParam?: string, currentListName?: string) => {
     if (!rawText.trim()) return;
     
+    console.log('=== OPTIMIZE DEBUG ===');
+    console.log('selectedStoreId:', selectedStoreId);
+    console.log('currentUserId:', currentUserId);
+    console.log('listName:', listName);
+    console.log('isEditingExistingList:', isEditingExistingList);
+    console.log('availableStores:', availableStores);
+    console.log('selectedStore object:', availableStores.find(s => s.id === selectedStoreId));
+    console.log('About to send storeId to API:', selectedStoreId);
+    
     setIsLoading(true);
     setError(null);
     
@@ -151,6 +175,12 @@ export default function HomePage() {
       setIsOptimized(true);
       setAppState(AppState.OPTIMIZED);
       
+      // Hide form after successful optimization
+      setShowForm(false);
+      
+      // Reset editing flag after successful update
+      setIsEditingExistingList(false);
+      
       // Update AI processing status
       // Check if metadata exists and has processedWith
       const wasAIProcessed = apiResponse.metadata && apiResponse.metadata.processedWith === 'ai';
@@ -161,7 +191,15 @@ export default function HomePage() {
         setError("AI processing wasn't available. Using basic categorization instead.");
       }
       
-      console.log(`List optimized using ${wasAIProcessed ? 'AI' : 'local processing'}`);
+      // Show feedback based on action taken
+      const actionType = apiResponse.metadata?.action || (isEditingExistingList ? 'updated' : 'created');
+      console.log(`List ${actionType} using ${wasAIProcessed ? 'AI' : 'local processing'}`);
+      
+      // Show success message if list was updated
+      if (actionType === 'updated') {
+        // Clear any previous errors since update was successful
+        setError(null);
+      }
     } catch (error) {
       console.error("Error calling optimization API:", error);
       setError("Could not process your list online. Using local processing instead.");
@@ -172,11 +210,18 @@ export default function HomePage() {
       setOptimizedItems(processedItems);
       setIsOptimized(true);
       setAppState(AppState.OPTIMIZED);
+      
+      // Hide form after successful optimization
+      setShowForm(false);
+      
+      // Reset editing flag after successful update
+      setIsEditingExistingList(false);
+      
       setIsAIProcessed(false);
     } finally {
       setIsLoading(false);
     }
-  }, [rawText, selectedStoreId, availableStores, currentUserId, listName]);
+  }, [rawText, selectedStoreId, availableStores, currentUserId, listName, isEditingExistingList]);
 
   // Define handleReset first
   const handleReset = useCallback(() => {
@@ -185,13 +230,29 @@ export default function HomePage() {
     setRawText('');
     setError(null);
     setIsAIProcessed(false);
+    setIsEditingExistingList(false);
     setAppState(AppState.CREATE_NEW);
   }, []);
   
-  const toggleFormVisibility = useCallback(() => {
-    // When showing the form in an optimized state, we want to keep optimization active
-    setShowForm(prev => !prev);
+  // Helper function to convert optimized items back to raw text
+  const convertItemsToRawText = useCallback((items: ShoppingItem[]): string => {
+    return items.map(item => item.originalText || item.name).join('\n');
   }, []);
+
+  const toggleFormVisibility = useCallback(() => {
+    // When showing the form in an optimized state, populate it with current items
+    if (!showForm && isOptimized && optimizedItems.length > 0) {
+      const textFromItems = convertItemsToRawText(optimizedItems);
+      console.log('Populating form with existing items:', textFromItems);
+      console.log('Current store ID should be:', selectedStoreId);
+      setRawText(textFromItems);
+      setIsEditingExistingList(true); // Mark as editing existing list
+      // Note: selectedStoreId should already be set correctly from the optimized list
+    } else {
+      setIsEditingExistingList(false); // Reset when hiding form
+    }
+    setShowForm(prev => !prev);
+  }, [showForm, isOptimized, optimizedItems, convertItemsToRawText, selectedStoreId]);
 
   // Event handlers for app navigation
   const handleUserLogin = useCallback((userId: string) => {
@@ -207,6 +268,7 @@ export default function HomePage() {
     setRawText('');
     setError(null);
     setIsAIProcessed(false);
+    setIsEditingExistingList(false);
     setAppState(AppState.LOGIN);
   }, []);
 
@@ -217,6 +279,7 @@ export default function HomePage() {
     setIsOptimized(false);
     setError(null);
     setIsAIProcessed(false);
+    setIsEditingExistingList(false);
     setAppState(AppState.CREATE_NEW);
   }, []);
 
@@ -229,9 +292,33 @@ export default function HomePage() {
     setIsOptimized(true);
     setIsAIProcessed(true); // Assume saved lists were AI processed
     setListName(list.name);
-    setSelectedStoreId(list.storeType);
+    
+    // Set the correct store ID from the saved list
+    // In the database, storeId is saved in the storeType field
+    const savedStoreId = list.storeType || list.storeId;
+    console.log('=== LOADING SAVED LIST ===');
+    console.log('list.storeType:', list.storeType);
+    console.log('list.storeId:', list.storeId);
+    console.log('Setting store from saved list:', savedStoreId);
+    console.log('Available stores:', availableStores);
+    
+    // Verify that the store exists in our available stores
+    const storeExists = availableStores.find(s => s.id === savedStoreId);
+    if (storeExists) {
+      console.log('Found matching store:', storeExists);
+      setSelectedStoreId(savedStoreId);
+    } else {
+      console.warn('Store not found in available stores, setting to first available');
+      if (availableStores.length > 0) {
+        setSelectedStoreId(availableStores[0].id);
+      }
+    }
+    
+    // Reset editing flag when selecting saved list (this will be a fresh load)
+    setIsEditingExistingList(false);
+    
     setAppState(AppState.OPTIMIZED);
-  }, []);
+  }, [availableStores]);
 
   const handleRefreshSavedLists = useCallback(() => {
     loadSavedLists();
@@ -327,6 +414,7 @@ export default function HomePage() {
                 setSelectedStoreId={setSelectedStoreId}
                 isLoading={isLoading}
                 onReset={handleReset}
+                isEditingExistingList={isEditingExistingList}
               />
             </motion.div>
           </div>
@@ -360,6 +448,7 @@ export default function HomePage() {
                   setSelectedStoreId={setSelectedStoreId}
                   isLoading={isLoading}
                   onReset={handleReset}
+                  isEditingExistingList={isEditingExistingList}
                 />
               </motion.div>
             )}

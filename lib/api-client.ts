@@ -15,6 +15,7 @@ export interface ShoppingListResponse {
     listName: string;
     storeName: string;
     processedWith: 'ai' | 'local';
+    action?: 'created' | 'updated'; // Optional field to indicate if list was created or updated
   }
 }
 

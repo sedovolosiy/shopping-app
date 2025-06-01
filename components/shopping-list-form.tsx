@@ -31,6 +31,7 @@ interface ShoppingListFormProps {
   onAddStore: (storeName: string) => Promise<Store | null>; // Added prop to handle adding a new store
   isLoading?: boolean; // Added to show spinner while waiting for server response
   onReset?: () => void; // Added to handle "New List" functionality
+  isEditingExistingList?: boolean; // Added to show if we're editing an existing list
 }
 
 const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
@@ -48,6 +49,7 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
   onAddStore,
   isLoading = false,
   onReset,
+  isEditingExistingList = false,
 }) => {
   const [newStoreName, setNewStoreName] = React.useState('');
   const [isAddingStore, setIsAddingStore] = React.useState(false);
@@ -98,11 +100,14 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
         <CardTitle className="flex items-center justify-center gap-2 text-2xl">
           <ShoppingCart className="h-6 w-6" />
           {/* TODO: Localize this title based on user preferences */}
-          Оптимизатор списка покупок
+          {isEditingExistingList ? 'Редактировать список покупок' : 'Оптимизатор списка покупок'}
         </CardTitle>
         <CardDescription className="text-blue-100">
           {/* TODO: Localize this description */}
-          Введите список товаров и выберите магазин для оптимального маршрута
+          {isEditingExistingList 
+            ? 'Измените товары в списке и обновите маршрут'
+            : 'Введите список товаров и выберите магазин для оптимального маршрута'
+          }
         </CardDescription>
       </CardHeader>
       

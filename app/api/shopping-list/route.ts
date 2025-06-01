@@ -494,6 +494,7 @@ export async function POST(request: Request) {
         processedWith: 'ai' // Assuming all processing is done with AI since we called processItemsWithAI
       }
     };
+    console.log('[POST_HANDLER] Response storeType:', shoppingList.storeType);
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {

@@ -93,3 +93,18 @@ export async function addStore(name: string) {
   
   return await response.json();
 }
+
+/**
+ * Get shopping lists for a user
+ * @param userId - The user ID
+ */
+export async function getUserShoppingLists(userId: string) {
+  const response = await fetch(`/api/shopping-list?userId=${encodeURIComponent(userId)}`);
+  
+  if (!response.ok) {
+    const errorData = await response.json() as ErrorResponse;
+    throw new Error(errorData.message || errorData.error || 'Failed to fetch shopping lists');
+  }
+  
+  return await response.json();
+}

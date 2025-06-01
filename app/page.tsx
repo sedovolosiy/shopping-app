@@ -9,6 +9,8 @@ import ShoppingListForm from '@/components/shopping-list-form';
 import OptimizedListView from '@/components/optimized-list-view';
 import AIStatus from '@/components/ai-status';
 import FullPageLoader from '@/components/full-page-loader';
+import UserLogin from '@/components/user-login';
+import SavedListsView from '@/components/saved-lists-view';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ListPlus } from 'lucide-react';
@@ -19,7 +21,20 @@ interface Store {
   name: string;
 }
 
+// App state enum for better state management
+enum AppState {
+  LOGIN = 'login',
+  SAVED_LISTS = 'saved_lists',
+  CREATE_NEW = 'create_new',
+  OPTIMIZED = 'optimized'
+}
+
 export default function HomePage() {
+  // Main app state
+  const [appState, setAppState] = useState<AppState>(AppState.LOGIN);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
+  
+  // Shopping list state
   const [rawText, setRawText] = useState<string>('');
   const [optimizedItems, setOptimizedItems] = useState<ShoppingItem[]>([]);
   const [isOptimized, setIsOptimized] = useState<boolean>(false);
@@ -29,10 +44,13 @@ export default function HomePage() {
   const [showForm, setShowForm] = useState<boolean>(true); // Control form visibility
 
   // New state variables required by ShoppingListForm
-  const [userId, setUserId] = useState<string>('guest-user-app-app'); // Default or load from auth
   const [listName, setListName] = useState<string>('');
   const [availableStores, setAvailableStores] = useState<Store[]>([]); // Initialize as empty array
   const [selectedStoreId, setSelectedStoreId] = useState<string>(''); // For the Select component in the form
+  
+  // Saved lists state
+  const [savedLists, setSavedLists] = useState<any[]>([]);
+  const [isLoadingSavedLists, setIsLoadingSavedLists] = useState<boolean>(false);
 
   // Load available stores on component mount
   useEffect(() => {
@@ -61,8 +79,33 @@ export default function HomePage() {
       }
     };
     
-    fetchStores();
-  }, []);
+    if (appState === AppState.CREATE_NEW || appState === AppState.OPTIMIZED) {
+      fetchStores();
+    }
+  }, [appState]);
+
+  // Load saved lists when user is selected
+  const loadSavedLists = useCallback(async () => {
+    if (!currentUserId) return;
+    
+    setIsLoadingSavedLists(true);
+    try {
+      const { getUserShoppingLists } = await import('@/lib/api-client');
+      const lists = await getUserShoppingLists(currentUserId);
+      setSavedLists(lists);
+    } catch (error) {
+      console.error('Error loading saved lists:', error);
+      setError('Не удалось загрузить сохранённые списки');
+    } finally {
+      setIsLoadingSavedLists(false);
+    }
+  }, [currentUserId]);
+
+  useEffect(() => {
+    if (appState === AppState.SAVED_LISTS) {
+      loadSavedLists();
+    }
+  }, [appState, loadSavedLists]);
 
   // Implementation for onAddStore with API client
   const handleAddStore = useCallback(async (storeName: string): Promise<Store | null> => {
@@ -85,7 +128,7 @@ export default function HomePage() {
     }
   }, []);
 
-  const handleOptimize = useCallback(async (currentUserId?: string, currentListName?: string) => {
+  const handleOptimize = useCallback(async (currentUserIdParam?: string, currentListName?: string) => {
     if (!rawText.trim()) return;
     
     setIsLoading(true);
@@ -98,7 +141,7 @@ export default function HomePage() {
       // Try to use the API for processing (with AI if available)
       const apiResponse = await processShoppingListWithAPI(
         rawText,
-        currentUserId || userId,
+        currentUserIdParam || currentUserId,
         currentListName || listName,
         selectedStoreId
       );
@@ -106,7 +149,7 @@ export default function HomePage() {
       // API returns items in the correct format
       setOptimizedItems(apiResponse.items);
       setIsOptimized(true);
-      setShowForm(false); // Hide form after successful optimization
+      setAppState(AppState.OPTIMIZED);
       
       // Update AI processing status
       // Check if metadata exists and has processedWith
@@ -128,12 +171,12 @@ export default function HomePage() {
       const processedItems = processShoppingList(rawText, storeForProcessing as any);
       setOptimizedItems(processedItems);
       setIsOptimized(true);
-      setShowForm(false); // Hide form after successful optimization
+      setAppState(AppState.OPTIMIZED);
       setIsAIProcessed(false);
     } finally {
       setIsLoading(false);
     }
-  }, [rawText, selectedStoreId, availableStores, userId, listName]);
+  }, [rawText, selectedStoreId, availableStores, currentUserId, listName]);
 
   // Define handleReset first
   const handleReset = useCallback(() => {
@@ -142,13 +185,57 @@ export default function HomePage() {
     setRawText('');
     setError(null);
     setIsAIProcessed(false);
-    setShowForm(true); // Show form when resetting
+    setAppState(AppState.CREATE_NEW);
   }, []);
   
   const toggleFormVisibility = useCallback(() => {
     // When showing the form in an optimized state, we want to keep optimization active
     setShowForm(prev => !prev);
   }, []);
+
+  // Event handlers for app navigation
+  const handleUserLogin = useCallback((userId: string) => {
+    setCurrentUserId(userId);
+    setAppState(AppState.SAVED_LISTS);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    setCurrentUserId('');
+    setSavedLists([]);
+    setOptimizedItems([]);
+    setIsOptimized(false);
+    setRawText('');
+    setError(null);
+    setIsAIProcessed(false);
+    setAppState(AppState.LOGIN);
+  }, []);
+
+  const handleCreateNew = useCallback(() => {
+    setRawText('');
+    setListName('');
+    setOptimizedItems([]);
+    setIsOptimized(false);
+    setError(null);
+    setIsAIProcessed(false);
+    setAppState(AppState.CREATE_NEW);
+  }, []);
+
+  const handleSelectSavedList = useCallback((list: any) => {
+    // Convert saved list to current format
+    setOptimizedItems(list.items.map((item: any) => ({
+      ...item,
+      purchased: false // Reset purchased status
+    })));
+    setIsOptimized(true);
+    setIsAIProcessed(true); // Assume saved lists were AI processed
+    setListName(list.name);
+    setSelectedStoreId(list.storeType);
+    setAppState(AppState.OPTIMIZED);
+  }, []);
+
+  const handleRefreshSavedLists = useCallback(() => {
+    loadSavedLists();
+  }, [loadSavedLists]);
   
   // Reset showForm when isOptimized changes
   useEffect(() => {
@@ -190,6 +277,119 @@ export default function HomePage() {
     }
   }, [optimizedItems, handleReset]);
 
+  // Render different views based on app state
+  const renderCurrentView = () => {
+    switch (appState) {
+      case AppState.LOGIN:
+        return (
+          <UserLogin 
+            onUserSelect={handleUserLogin} 
+            isLoading={isLoading} 
+          />
+        );
+
+      case AppState.SAVED_LISTS:
+        return (
+          <SavedListsView
+            userId={currentUserId}
+            savedLists={savedLists}
+            isLoading={isLoadingSavedLists}
+            onSelectList={handleSelectSavedList}
+            onCreateNew={handleCreateNew}
+            onLogout={handleLogout}
+            onRefresh={handleRefreshSavedLists}
+          />
+        );
+
+      case AppState.CREATE_NEW:
+        return (
+          <div className="space-y-8">
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.4 }}
+              key="shopping-form"
+              className="mb-8"
+            >
+              <ShoppingListForm
+                rawText={rawText}
+                setRawText={setRawText}
+                onOptimize={handleOptimize}
+                isOptimized={isOptimized}
+                userId={currentUserId}
+                setUserId={setCurrentUserId}
+                listName={listName}
+                setListName={setListName}
+                availableStores={availableStores}
+                onAddStore={handleAddStore}
+                selectedStoreId={selectedStoreId}
+                setSelectedStoreId={setSelectedStoreId}
+                isLoading={isLoading}
+                onReset={handleReset}
+              />
+            </motion.div>
+          </div>
+        );
+
+      case AppState.OPTIMIZED:
+        return (
+          <div className="space-y-8">
+            {/* Show form if toggled */}
+            {showForm && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.4 }}
+                key="shopping-form"
+                className="mb-8"
+              >
+                <ShoppingListForm
+                  rawText={rawText}
+                  setRawText={setRawText}
+                  onOptimize={handleOptimize}
+                  isOptimized={isOptimized}
+                  userId={currentUserId}
+                  setUserId={setCurrentUserId}
+                  listName={listName}
+                  setListName={setListName}
+                  availableStores={availableStores}
+                  onAddStore={handleAddStore}
+                  selectedStoreId={selectedStoreId}
+                  setSelectedStoreId={setSelectedStoreId}
+                  isLoading={isLoading}
+                  onReset={handleReset}
+                />
+              </motion.div>
+            )}
+
+            {/* Optimized list */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              key="optimized-list"
+            >
+              <OptimizedListView
+                items={optimizedItems}
+                storeType={availableStores.find(s => s.id === selectedStoreId)?.name || selectedStoreId as any}
+                onToggleItem={handleToggleItem}
+                onDeleteItem={handleDeleteItem}
+                onReset={handleReset}
+                isAIProcessed={isAIProcessed}
+                onToggleForm={toggleFormVisibility}
+              />
+            </motion.div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Заголовок приложения */}
@@ -222,7 +422,9 @@ export default function HomePage() {
       </AnimatePresence>
       
       <main className="container mx-auto px-4 py-8 space-y-8 relative">
-        <AIStatus isActive={isAIProcessed} aiModel="Gemini" />
+        {(appState === AppState.CREATE_NEW || appState === AppState.OPTIMIZED) && (
+          <AIStatus isActive={isAIProcessed} aiModel="Gemini" />
+        )}
         
         {/* Сообщение об ошибке */}
         {error && (
@@ -232,60 +434,12 @@ export default function HomePage() {
         )}
         
         <AnimatePresence mode="wait">
-          {/* Форма ввода - показываем когда не оптимизировано или явно запрошено */}
-          {showForm && !isLoading && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.4 }}
-              key="shopping-form"
-              className="mb-8"
-            >
-              <ShoppingListForm
-                rawText={rawText}
-                setRawText={setRawText}
-                onOptimize={handleOptimize}
-                isOptimized={isOptimized}
-                userId={userId}
-                setUserId={setUserId}
-                listName={listName}
-                setListName={setListName}
-                availableStores={availableStores}
-                onAddStore={handleAddStore}
-                selectedStoreId={selectedStoreId}
-                setSelectedStoreId={setSelectedStoreId}
-                isLoading={isLoading}
-                onReset={handleReset}
-              />
-            </motion.div>
-          )}
-  
-          {/* Оптимизированный список */}
-          {isOptimized && optimizedItems.length > 0 && !isLoading && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-              key="optimized-list"
-            >
-              <OptimizedListView
-                items={optimizedItems}
-                storeType={availableStores.find(s => s.id === selectedStoreId)?.name || selectedStoreId as any}
-                onToggleItem={handleToggleItem}
-                onDeleteItem={handleDeleteItem}
-                onReset={handleReset}
-                isAIProcessed={isAIProcessed}
-                onToggleForm={toggleFormVisibility}
-              />
-            </motion.div>
-          )}
+          {!isLoading && renderCurrentView()}
         </AnimatePresence>
 
         <AnimatePresence>
           {/* Пустое состояние */}
-          {isOptimized && optimizedItems.length === 0 && !isLoading && (
+          {appState === AppState.OPTIMIZED && isOptimized && optimizedItems.length === 0 && !isLoading && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -311,7 +465,7 @@ export default function HomePage() {
 
         {/* Информационные карточки */}
         <AnimatePresence>
-          {!isOptimized && !isLoading && (
+          {appState === AppState.CREATE_NEW && !isOptimized && !isLoading && (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

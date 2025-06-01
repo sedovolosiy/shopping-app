@@ -8,23 +8,23 @@ async function main() {
 
   // Array of store objects to add
   const storeData = [
-    { name: "Lidl", type: "lidl" },
-    { name: "Aldi", type: "aldi" },
-    { name: "Biedronka", type: "biedronka" },
-    { name: "Auchan", type: "auchan" },
-    { name: "Carrefour", type: "carrefour" },
-    { name: "Makro", type: "makro" },
+    { name: "Lidl" },
+    { name: "Aldi" },
+    { name: "Biedronka" },
+    { name: "Auchan" },
+    { name: "Carrefour" },
+    { name: "Makro" },
   ];
 
   // Create stores one by one, skipping if they already exist
-  for (const { name, type } of storeData) {
+  for (const { name } of storeData) {
     const existingStore = await prisma.store.findUnique({
       where: { name },
     });
 
     if (!existingStore) {
       const store = await prisma.store.create({
-        data: { name, type },
+        data: { name },
       });
       console.log(`Created store: ${store.name} (${store.id})`);
     } else {

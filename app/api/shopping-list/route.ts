@@ -476,6 +476,7 @@ export async function POST(request: Request) {
       },
       include: {
         items: true,
+        store: true, // Include store information
       },
     });
 
@@ -512,6 +513,7 @@ export async function POST(request: Request) {
         },
         include: {
           items: true,
+          store: true, // Include store information
         },
       });
       console.log('[POST_HANDLER] Shopping list updated successfully:', shoppingList.id);
@@ -539,6 +541,7 @@ export async function POST(request: Request) {
         },
         include: {
           items: true,
+          store: true, // Include store information
         },
       });
       console.log('[POST_HANDLER] Shopping list created successfully:', shoppingList.id);
@@ -645,6 +648,7 @@ export async function GET(request: Request) {
       },
       include: {
         items: true,
+        store: true, // Include store information
       },
       orderBy: {
         createdAt: 'desc',

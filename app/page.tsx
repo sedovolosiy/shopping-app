@@ -294,10 +294,9 @@ export default function HomePage() {
     setListName(list.name);
     
     // Set the correct store ID from the saved list
-    // In the database, storeId is saved in the storeType field
-    const savedStoreId = list.storeType || list.storeId;
+    // In the database, storeId is saved
+    const savedStoreId = list.storeId;
     console.log('=== LOADING SAVED LIST ===');
-    console.log('list.storeType:', list.storeType);
     console.log('list.storeId:', list.storeId);
     console.log('Setting store from saved list:', savedStoreId);
     console.log('Available stores:', availableStores);

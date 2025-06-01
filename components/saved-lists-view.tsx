@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +21,7 @@ interface SavedList {
   id: string;
   name: string;
   createdAt: string;
-  storeType: string;
+  storeId: string;
   items: Array<{
     id: string;
     name: string;
@@ -54,21 +54,38 @@ export default function SavedListsView({
   const [selectedStore, setSelectedStore] = useState<string>('all');
   const [listToDelete, setListToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [storesMap, setStoresMap] = useState<Record<string, string>>({});
 
-  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    async function fetchStores() {
+      try {
+        const res = await fetch('/api/stores');
+        if (!res.ok) return;
+        const stores = await res.json();
+        const map: Record<string, string> = {};
+        (stores || []).forEach((store: { id: string; name: string }) => {
+          if (store && store.id && store.name) {
+            map[store.id] = store.name;
+          }
+        });
+        setStoresMap(map);
+      } catch (e) {
+        // ignore
+      }
+    }
+    fetchStores();
+  }, []);
 
   const handleDeleteList = async () => {
     if (!listToDelete || !onDeleteList) return;
     
     try {
-      setError(null);
       setIsDeleting(true);
       await onDeleteList(listToDelete);
       setListToDelete(null);
       onRefresh(); // Обновляем список после удаления
     } catch (error) {
       console.error('Error deleting list:', error);
-      setError(error instanceof Error ? error.message : 'Не удалось удалить список');
     } finally {
       setIsDeleting(false);
     }
@@ -85,21 +102,16 @@ export default function SavedListsView({
     });
   };
 
-  const getStoreDisplayName = (storeType: string) => {
-    const storeNames: Record<string, string> = {
-      'lidl': 'Lidl',
-      'biedronka': 'Biedronka',
-      'aldi': 'Aldi',
-      'default': 'Магазин'
-    };
-    return storeNames[storeType] || storeType;
+  // Получение имени магазина по storeId из storesMap
+  const getStoreDisplayName = (storeId: string) => {
+    return storesMap[storeId] || 'Магазин';
   };
 
   const filteredLists = selectedStore === 'all' 
     ? savedLists 
-    : savedLists.filter(list => list.storeType === selectedStore);
+    : savedLists.filter(list => list.storeId === selectedStore);
 
-  const uniqueStores = Array.from(new Set(savedLists.map(list => list.storeType)));
+  const uniqueStores = Array.from(new Set(savedLists.map(list => list.storeId)));
 
   if (isLoading) {
     return (
@@ -184,7 +196,14 @@ export default function SavedListsView({
             >
               <Card className="cursor-pointer hover:shadow-lg transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-xl font-semibold">{list.name}</CardTitle>
+                  <div className="flex flex-col">
+                    <CardTitle className="text-xl font-semibold flex items-center gap-2">
+                      {list.name}
+                      <span className="text-base font-normal text-blue-600 bg-blue-50 rounded px-2 py-0.5 ml-2">
+                        {getStoreDisplayName(list.storeId)}
+                      </span>
+                    </CardTitle>
+                  </div>
                   <div className="flex space-x-2">
                     {onDeleteList && (
                       <Button
@@ -237,6 +256,11 @@ export default function SavedListsView({
                       )}
                     </div>
                   </div>
+
+                  <div className="flex items-center text-sm text-muted-foreground mt-2">
+                    <ShoppingCart className="h-4 w-4 mr-1" />
+                    {getStoreDisplayName(list.storeId)}
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -261,7 +285,6 @@ export default function SavedListsView({
         onOpenChange={(open) => {
           if (!open) {
             setListToDelete(null);
-            setError(null);
           }
         }}
       >
@@ -270,11 +293,6 @@ export default function SavedListsView({
             <AlertDialogTitle>Удалить список покупок?</AlertDialogTitle>
             <AlertDialogDescription>
               Это действие нельзя будет отменить. Список покупок будет удален навсегда.
-              {error && (
-                <div className="mt-2 text-red-500">
-                  {error}
-                </div>
-              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -282,7 +300,7 @@ export default function SavedListsView({
             <AlertDialogAction
               onClick={handleDeleteList}
               disabled={isDeleting}
-              className={`${error ? 'bg-red-300' : 'bg-red-500 hover:bg-red-600'}`}
+              className={`${isDeleting ? 'bg-red-300' : 'bg-red-500 hover:bg-red-600'}`}
             >
               {isDeleting ? 'Удаление...' : 'Удалить'}
             </AlertDialogAction>

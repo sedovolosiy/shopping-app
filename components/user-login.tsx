@@ -21,30 +21,43 @@ export default function UserLogin({ onUserSelect, isLoading = false }: UserLogin
     return isLoading || !userId.trim();
   }, [isLoading, userId]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const trimmedUserId = userId.trim();
-    
-    if (!trimmedUserId) {
-      setError('Пожалуйста, введите ваш ID пользователя');
-      return;
-    }
-    
-    // Базовая валидация формата email
-    if (trimmedUserId.includes('@') && !isValidEmail(trimmedUserId)) {
-      setError('Пожалуйста, введите действительный email адрес');
-      return;
-    }
-    
-    setError('');
-    onUserSelect(trimmedUserId);
-  };
-
   // Простая валидация email
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedUserId = userId.trim();
+    if (!trimmedUserId) {
+      setError('Пожалуйста, введите ваш ID пользователя');
+      return;
+    }
+    if (trimmedUserId.includes('@') && !isValidEmail(trimmedUserId)) {
+      setError('Пожалуйста, введите действительный email адрес');
+      return;
+    }
+    setError('');
+    try {
+      // Проверяем или создаём пользователя
+      const res = await fetch('/api/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: trimmedUserId })
+      });
+      if (!res.ok) {
+        throw new Error('Ошибка при обращении к серверу');
+      }
+      const data = await res.json();
+      if (!data || !data.userId) {
+        setError('Не удалось получить ID пользователя');
+        return;
+      }
+      onUserSelect(data.userId);
+    } catch (err) {
+      setError('Ошибка при обращении к серверу');
+    }
   };
 
   const handleQuickSelect = (quickUserId: string) => {

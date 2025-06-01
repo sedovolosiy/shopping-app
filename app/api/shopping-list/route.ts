@@ -488,7 +488,6 @@ export async function POST(request: Request) {
           shoppingListId: existingList.id,
         },
       });
-      
       // Update the existing list with new data
       shoppingList = await prisma.shoppingList.update({
         where: {
@@ -496,7 +495,7 @@ export async function POST(request: Request) {
         },
         data: {
           rawText: rawText,
-          storeType: storeId || 'default',
+          ...(storeId ? { storeId } : {}),
           updatedAt: new Date(),
           items: {
             create: processedItems.map(item => ({
@@ -523,7 +522,7 @@ export async function POST(request: Request) {
         data: {
           name: finalListName,
           rawText: rawText,
-          storeType: storeId || 'default',
+          ...(storeId ? { storeId } : {}),
           userId: user.id,
           items: {
             create: processedItems.map(item => ({
@@ -569,7 +568,8 @@ export async function POST(request: Request) {
         action: existingList ? 'updated' : 'created', // Add action type to metadata
       }
     };
-    console.log('[POST_HANDLER] Response storeType:', shoppingList.storeType);
+    // Remove storeType log
+    // console.log('[POST_HANDLER] Response storeType:', shoppingList.storeType);
     console.log('[POST_HANDLER] Response storeName:', storeName);
 
     return NextResponse.json(response, { status: 201 });

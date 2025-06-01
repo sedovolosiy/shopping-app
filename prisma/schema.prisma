@@ -1,63 +1,65 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "sqlite"
-    url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-    id           String          @id @default(cuid())
-    identifier   String          @unique // Email or other unique identifier
-    shoppingLists ShoppingList[]
-    preferences   UserPreferences?
-    createdAt    DateTime       @default(now())
-    updatedAt    DateTime       @updatedAt
+  id            String           @id @default(cuid())
+  identifier    String           @unique
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  shoppingLists ShoppingList[]
+  preferences   UserPreferences?
 }
 
 model UserPreferences {
-    id        String   @id @default(cuid())
-    language  String   @default("en")
-    userId    String   @unique
-    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id        String   @id @default(cuid())
+  language  String   @default("en")
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ShoppingList {
-    id        String   @id @default(cuid())
-    name      String
-    storeType String
-    rawText   String
-    rawInput  String?  // Additional field for original input
-    userId    String?  // Add userId field
-    user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-    items     ShoppingListItem[]
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id        String             @id @default(cuid())
+  name      String
+  storeId   String?
+  rawText   String
+  rawInput  String?
+  userId    String?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  user      User?              @relation(fields: [userId], references: [id])
+  store     Store?             @relation(fields: [storeId], references: [id])
+  items     ShoppingListItem[]
 }
 
 model ShoppingListItem {
-    id             String       @id @default(cuid())
-    name           String
-    normalizedText String?      // Add normalized text field
-    category       String
-    categoryOrder  Int
-    quantity       String?      // Add quantity field
-    unit           String?      // Add unit field
-    language       String?      // Add language field
-    purchased      Boolean      @default(false)
-    originalText   String
-    shoppingListId String
-    shoppingList   ShoppingList @relation(fields: [shoppingListId], references: [id], onDelete: Cascade)
-    createdAt      DateTime     @default(now())
-    updatedAt      DateTime     @updatedAt
+  id             String       @id @default(cuid())
+  name           String
+  category       String
+  categoryOrder  Int
+  purchased      Boolean      @default(false)
+  originalText   String
+  shoppingListId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  language       String?
+  normalizedText String?
+  quantity       String?
+  unit           String?
+  shoppingList   ShoppingList @relation(fields: [shoppingListId], references: [id], onDelete: Cascade)
 }
 
 model Store {
-    id        String   @id @default(cuid())
-    name      String   @unique
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id            String         @id @default(cuid())
+  name          String         @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  shoppingLists ShoppingList[]
 }

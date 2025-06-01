@@ -13,7 +13,7 @@ async function main() {
     "Biedronka",
     "Auchan",
     "Carrefour",
-    "Tesco",
+    "Makro",
   ];
 
   // Create stores one by one, skipping if they already exist

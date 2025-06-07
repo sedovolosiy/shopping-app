@@ -255,7 +255,7 @@ export default function SavedListsView({
                     }`}>
                       {list.name}
                       {isClient && (
-                        <span className={`font-normal text-blue-600 bg-blue-50 rounded px-2 py-0.5 ml-2 ${
+                        <span className={`font-normal text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded px-2 py-0.5 ml-2 ${
                           isDesktop ? 'desktop-text' : 'text-base'
                         }`}>
                           {getStoreDisplayName(list.storeId)}

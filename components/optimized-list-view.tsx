@@ -126,8 +126,8 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
 
       {isDesktop && (
         // Desktop header
-        <div className="flex items-center justify-between mb-6">
-          <div>
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+          <div className="flex-1 min-w-0">
             <h1 className="desktop-heading flex items-center gap-3">
               <Route className="h-8 w-8 text-primary" />
               Оптимизированный маршрут
@@ -137,33 +137,36 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
             </p>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <Button
               variant="outline"
               onClick={() => setExpandAll(!expandAll)}
-              className="desktop-button"
+              className="desktop-button-compact"
+              size="sm"
             >
-              <ChevronsUpDown className="h-5 w-5 mr-2" />
-              {expandAll ? "Свернуть все" : "Развернуть все"}
+              <ChevronsUpDown className="h-4 w-4 mr-1" />
+              {expandAll ? "Свернуть" : "Развернуть"}
             </Button>
             
             <Button
               variant="outline"
               onClick={onReset}
-              className="desktop-button"
+              className="desktop-button-compact"
+              size="sm"
             >
-              <RotateCcw className="h-5 w-5 mr-2" />
-              Новый список
+              <RotateCcw className="h-4 w-4 mr-1" />
+              Новый
             </Button>
             
             {onToggleForm && (
               <Button
                 variant="secondary"
                 onClick={onToggleForm}
-                className="desktop-button"
+                className="desktop-button-compact"
+                size="sm"
               >
-                <Edit className="h-5 w-5 mr-2" />
-                Изменить список
+                <Edit className="h-4 w-4 mr-1" />
+                Изменить
               </Button>
             )}
           </div>

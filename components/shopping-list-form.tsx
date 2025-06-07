@@ -154,8 +154,8 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
               {/* AI toggle */}
               <div className="desktop-card-section">
                 <h3 className="desktop-section-title">Настройки оптимизации</h3>
-                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                  <label htmlFor="ai-toggle-form" className="desktop-text font-medium text-gray-700 dark:text-gray-300">
+                <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                  <label htmlFor="ai-toggle-form" className="desktop-text font-medium text-gray-700 dark:text-blue-100">
                     Использовать AI для оптимизации:
                   </label>
                   <div className="flex items-center">
@@ -349,8 +349,8 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
           // Mobile/Tablet single-column layout
           <>
             {/* AI toggle inside the form */}
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-              <label htmlFor="ai-toggle-form" className="text-sm font-medium text-gray-700 dark:text-gray-300">Использовать AI для оптимизации:</label>
+            <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+              <label htmlFor="ai-toggle-form" className="text-sm font-medium text-gray-700 dark:text-blue-100">Использовать AI для оптимизации:</label>
               <div className="flex items-center">
                 <div 
                   className={`mobile-toggle ${useAI ? 'mobile-toggle-on' : 'mobile-toggle-off'}`} 

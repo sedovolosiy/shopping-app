@@ -1,0 +1,96 @@
+/* Tablet-specific styles for Shopping Optimizer app */
+
+/* Основные планшетные стили применяются от 640px до 1024px */
+@media (min-width: 640px) and (max-width: 1024px) {
+  .screen-flow {
+    @apply max-w-2xl;
+  }
+  
+  /* Двухколоночная сетка для списков на планшетах */
+  .tablet-grid {
+    @apply grid grid-cols-2 gap-4;
+  }
+  
+  /* Адаптированная навигация для планшетов */
+  .tablet-nav {
+    @apply flex justify-center space-x-2 py-3;
+  }
+  
+  /* Боковые панели для планшетов в ландшафтном режиме */
+  .tablet-sidebar {
+    @apply hidden md:block w-1/4 min-w-[16rem] border-r border-gray-200 dark:border-gray-700 h-screen overflow-y-auto;
+  }
+  
+  /* Основной контент при наличии бокового меню */
+  .tablet-main-content {
+    @apply w-3/4 h-screen overflow-y-auto;
+  }
+}
+
+/* Стили для планшетов в портретной ориентации */
+@media (min-width: 640px) and (max-width: 1024px) and (orientation: portrait) {
+  .category-item {
+    @apply p-4;
+  }
+  
+  .route-category {
+    @apply p-5;
+  }
+  
+  /* Увеличенные элементы управления для лучшего тактильного управления */
+  button, 
+  .button, 
+  .interactive-element {
+    @apply min-h-[3rem] min-w-[3rem];
+  }
+}
+
+/* Стили для планшетов в ландшафтной ориентации */
+@media (min-width: 640px) and (max-width: 1024px) and (orientation: landscape) {
+  .screen-flow {
+    @apply flex-row;
+  }
+  
+  .tablet-layout-horizontal {
+    @apply flex flex-row gap-4;
+  }
+  
+  .tablet-panel {
+    @apply w-1/2;
+  }
+}
+
+/* Стили для кнопок и интерактивных элементов на планшетах */
+@media (min-width: 640px) and (max-width: 1024px) {
+  .tablet-button {
+    @apply px-6 py-3 text-lg;
+  }
+  
+  /* Увеличенный размер шрифта для лучшей читаемости */
+  .tablet-text-lg {
+    @apply text-lg;
+  }
+  
+  .tablet-text-xl {
+    @apply text-xl;
+  }
+  
+  /* Адаптивные карточки для планшетов */
+  .screen-card {
+    @apply max-w-full;
+  }
+}
+
+/* Специфичные настройки для iPad */
+@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) {
+  .ipad-specific {
+    @apply shadow-lg rounded-xl;
+  }
+}
+
+/* Специфичные настройки для Samsung Galaxy Tab */
+@media only screen and (min-device-width: 800px) and (max-device-width: 1280px) {
+  .galaxy-tab-specific {
+    @apply shadow-lg rounded-xl;
+  }
+}

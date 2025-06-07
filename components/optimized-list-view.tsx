@@ -9,6 +9,7 @@ import CategoryGroup from './category-group';
 import { motion } from 'framer-motion';
 import { Route, RotateCcw, CheckCircle2, Circle, ChevronsUpDown, Edit, ListPlus } from 'lucide-react';
 import { AITag } from './ai-status';
+import { useDevice } from '@/components/device-detector';
 
 interface OptimizedListViewProps {
   items: ShoppingItem[];
@@ -32,6 +33,10 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
   const [expandAll, setExpandAll] = useState<boolean>(true);
   // Добавляем состояние для отслеживания развернутых/свёрнутых категорий
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  
+  // Определяем тип устройства для адаптивного интерфейса
+  const { isTablet, orientation } = useDevice();
+  const isTabletLandscape = isTablet && orientation === 'landscape';
   
   const safeItems = Array.isArray(items) ? items : [];
   const groupedItems: Record<string, ShoppingItem[]> = groupItemsByCategory(safeItems) || {};
@@ -70,8 +75,13 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
     return null;
   }
 
+  // Определяем классы для адаптивного интерфейса
+  const containerClasses = isTablet 
+    ? "route-screen w-full max-w-3xl mx-auto tablet-text-lg"
+    : "route-screen w-full max-w-md mx-auto";
+    
   return (
-    <div className="route-screen w-full max-w-md mx-auto">
+    <div className={containerClasses}>
       {/* Progress bar at the top */}
       <div className="route-progress">
         <div

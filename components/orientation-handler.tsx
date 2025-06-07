@@ -17,11 +17,18 @@ const OrientationHandler: React.FC<OrientationHandlerProps> = ({
   
   useEffect(() => {
     const checkOrientation = () => {
-      // Only apply this to mobile devices
-      if (window.innerWidth <= 768) {
+      // Определение типа устройства
+      const isMobile = window.innerWidth <= 640;
+      const isTablet = window.innerWidth > 640 && window.innerWidth <= 1024;
+      
+      if (isMobile) {
+        // Для мобильных устройств всегда проверяем ориентацию
+        setIsLandscape(window.innerWidth > window.innerHeight);
+      } else if (isTablet && forcePortrait) {
+        // Для планшетов проверяем ориентацию только если forcePortrait=true
         setIsLandscape(window.innerWidth > window.innerHeight);
       } else {
-        // For tablets and desktops, don't force orientation
+        // Для планшетов с forcePortrait=false и десктопов не ограничиваем ориентацию
         setIsLandscape(false);
       }
     };
@@ -38,7 +45,7 @@ const OrientationHandler: React.FC<OrientationHandlerProps> = ({
       window.removeEventListener("resize", checkOrientation);
       window.removeEventListener("orientationchange", checkOrientation);
     };
-  }, []);
+  }, [forcePortrait]);
   
   if (isLandscape && forcePortrait) {
     return (
@@ -70,8 +77,17 @@ const OrientationHandler: React.FC<OrientationHandlerProps> = ({
     );
   }
   
+  // Определяем тип устройства
+  const isTablet = typeof window !== 'undefined' && 
+    window.innerWidth > 640 && window.innerWidth <= 1024;
+  
   return (
-    <div className={isLandscape ? "landscape-mode" : "portrait-mode"}>
+    <div className={`
+      ${isLandscape ? "landscape-mode" : "portrait-mode"}
+      ${isTablet ? "tablet-device" : ""}
+      ${isTablet && isLandscape ? "tablet-landscape" : ""}
+      ${isTablet && !isLandscape ? "tablet-portrait" : ""}
+    `}>
       {children}
     </div>
   );

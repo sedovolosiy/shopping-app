@@ -15,6 +15,8 @@ import InstallPrompt from '@/components/install-prompt';
 import OrientationHandler from '@/components/orientation-handler';
 import { useTheme } from '@/components/theme-provider';
 import { Moon, Sun } from 'lucide-react';
+import DeviceProvider, { useDevice, DeviceRender } from '@/components/device-detector';
+import TabletLayout from '@/components/tablet-layout';
 
 // Define the Store interface expected by ShoppingListForm and for availableStores
 interface Store {
@@ -669,28 +671,68 @@ export default function HomePage() {
   };
 
   return (
-    <OrientationHandler forcePortrait={false}>
-      <div className="min-h-screen">
-        <MainClientContent
-          appState={appState}
-          isOptimized={isOptimized}
-          isLoading={isLoading}
-          isAIProcessed={isAIProcessed}
-          error={error}
-          renderCurrentView={renderCurrentView}
-          handleReset={handleReset}
-          showForm={showForm}
-          optimizedItems={optimizedItems}
+    <DeviceProvider>
+      <OrientationHandler forcePortrait={false}>
+        <DeviceRender 
+          mobile={
+            <div className="min-h-screen">
+              <MainClientContent
+                appState={appState}
+                isOptimized={isOptimized}
+                isLoading={isLoading}
+                isAIProcessed={isAIProcessed}
+                error={error}
+                renderCurrentView={renderCurrentView}
+                handleReset={handleReset}
+                showForm={showForm}
+                optimizedItems={optimizedItems}
+              />
+              
+              {/* Only show bottom navigation when user is logged in */}
+              {appState !== AppState.LOGIN && (
+                <MobileBottomNavigation 
+                  activeTab={activeTab} 
+                  onTabChange={handleTabChange}
+                  onFilterClick={() => appState === AppState.OPTIMIZED && setIsFilterDrawerOpen(true)}
+                />
+              )}
+            </div>
+          }
+          tablet={
+            <TabletLayout
+              activeTab={activeTab}
+              onChangeTab={handleTabChange}
+              onOpenSettings={() => setIsSettingsDrawerOpen(true)}
+            >
+              <MainClientContent
+                appState={appState}
+                isOptimized={isOptimized}
+                isLoading={isLoading}
+                isAIProcessed={isAIProcessed}
+                error={error}
+                renderCurrentView={renderCurrentView}
+                handleReset={handleReset}
+                showForm={showForm}
+                optimizedItems={optimizedItems}
+              />
+            </TabletLayout>
+          }
+          default={
+            <div className="min-h-screen">
+              <MainClientContent
+                appState={appState}
+                isOptimized={isOptimized}
+                isLoading={isLoading}
+                isAIProcessed={isAIProcessed}
+                error={error}
+                renderCurrentView={renderCurrentView}
+                handleReset={handleReset}
+                showForm={showForm}
+                optimizedItems={optimizedItems}
+              />
+            </div>
+          }
         />
-        
-        {/* Only show bottom navigation when user is logged in */}
-        {appState !== AppState.LOGIN && (
-          <MobileBottomNavigation 
-            activeTab={activeTab} 
-            onTabChange={handleTabChange}
-            onFilterClick={() => appState === AppState.OPTIMIZED && setIsFilterDrawerOpen(true)}
-          />
-        )}
         
         {/* Filter drawer for optimized shopping list */}
         <MobileDrawer
@@ -747,9 +789,7 @@ export default function HomePage() {
         
         {/* App installation prompt */}
         <InstallPrompt />
-      </div>
-    </OrientationHandler>
+      </OrientationHandler>
+    </DeviceProvider>
   );
-  
-  // All the existing functions like handleOptimize, handleItemCheck, etc. would remain here
 }

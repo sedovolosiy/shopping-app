@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShoppingCart, Store as StoreIcon } from 'lucide-react'; // Renamed Store to StoreIcon to avoid conflict
+import { useDevice } from '@/components/device-detector';
 // import { StoreType } from '@/lib/types'; // This might need to be updated or augmented as StoreType might be a string literal union
 
 // Define a type for the store object fetched from the API
@@ -58,6 +59,9 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
   const [newStoreName, setNewStoreName] = React.useState('');
   const [isAddingStore, setIsAddingStore] = React.useState(false);
   const [addStoreError, setAddStoreError] = React.useState<string | null>(null);
+  
+  // Определяем тип устройства для адаптивного интерфейса
+  const { isTablet, orientation } = useDevice();
 
   // Safeguard: ensure availableStores is an array.
   const currentStores = Array.isArray(availableStores) ? availableStores : [];
@@ -98,8 +102,13 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
     setIsAddingStore(false);
   };
 
+  // Определяем классы в зависимости от типа устройства
+  const cardClasses = isTablet 
+    ? "screen-card w-full max-w-2xl mx-auto shadow-md"
+    : "screen-card w-full max-w-md mx-auto shadow-md";
+    
   return (
-    <Card className="screen-card w-full max-w-md mx-auto shadow-md">
+    <Card className={cardClasses}>
       <CardHeader className="text-center bg-gradient-to-r from-primary to-accent text-white rounded-t-lg py-5">
         <CardTitle className="flex items-center justify-center gap-2 text-xl">
           <ShoppingCart className="h-6 w-6" />
@@ -129,9 +138,9 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
           </div>
         </div>
 
-        {/* User Identifier Input - Mobile-friendly version */}
+        {/* User Identifier Input - Mobile and Tablet friendly version */}
         <div className="form-input-group">
-          <Label htmlFor="user-id" className="form-label">
+          <Label htmlFor="user-id" className={`form-label ${isTablet ? 'tablet-text-lg' : ''}`}>
             ID пользователя
           </Label>
           <input 
@@ -140,7 +149,7 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
             placeholder="Введите ваш email или ID" 
-            className="form-input"
+            className={`form-input ${isTablet ? 'h-14 text-lg' : ''}`}
             readOnly={isEditingExistingList}
           />
           {userId && <p className="text-xs text-gray-500 mt-1">Списки будут сохранены под этим ID</p>}
@@ -256,7 +265,7 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
           <Button
             onClick={() => onOptimize(userId, listName)}
             disabled={!rawText.trim() || !selectedStoreId || !userId.trim() || isLoading}
-            className="w-full h-14 text-lg font-medium bg-gradient-to-r from-primary to-accent text-white hover:opacity-95 shadow-md rounded-xl"
+            className={`w-full ${isTablet ? 'h-16 text-xl tablet-button' : 'h-14 text-lg'} font-medium bg-gradient-to-r from-primary to-accent text-white hover:opacity-95 shadow-md rounded-xl`}
           >
             {isLoading ? (
               <div className="flex items-center justify-center">

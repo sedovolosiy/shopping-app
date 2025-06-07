@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ShoppingItem } from '@/lib/types';
 import { motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
+import { useDevice } from '@/components/device-detector';
 
 interface ListItemEntryProps {
   item: ShoppingItem;
@@ -16,6 +17,13 @@ interface ListItemEntryProps {
 }
 
 const ListItemEntry: React.FC<ListItemEntryProps> = ({ item, onToggle, onDelete, index }) => {
+  // Определяем тип устройства
+    // Определяем тип устройства
+  const { isTablet } = useDevice();
+  
+  // Дополнительные классы для планшета
+  const tabletClasses = isTablet ? 'py-3 tablet-text-lg' : '';
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 5 }}
@@ -25,7 +33,7 @@ const ListItemEntry: React.FC<ListItemEntryProps> = ({ item, onToggle, onDelete,
         item.purchased
           ? 'opacity-75'
           : ''
-      }`}
+      } ${tabletClasses}`}
     >
       <div
         className={`route-item-checkbox ${item.purchased ? 'route-item-checked' : ''}`}
@@ -43,16 +51,14 @@ const ListItemEntry: React.FC<ListItemEntryProps> = ({ item, onToggle, onDelete,
       </div>
       <label
         onClick={() => onToggle(item.id)}
-        className={`flex-1 cursor-pointer text-sm transition-all duration-200 ${
+        className={`flex-1 cursor-pointer ${isTablet ? 'text-base' : 'text-sm'} transition-all duration-200 ${
           item.purchased
             ? 'line-through text-gray-400'
             : 'text-gray-800'
         }`}
       >
         {item.name}
-        {item.quantity && item.quantity !== '1' && (
-          <span className="text-xs text-gray-500 ml-1">×{item.quantity}</span>
-        )}
+        {/* Проверка на quantity не требуется, так как его нет в типе ShoppingItem */}
       </label>
       <div className="flex items-center">
         {onDelete && (

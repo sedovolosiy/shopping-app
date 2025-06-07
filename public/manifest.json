@@ -8,7 +8,7 @@
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#ffffff",
   "theme_color": "#4f46e5",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "categories": ["shopping", "productivity", "utilities"],
   "screenshots": [
     {
@@ -31,6 +31,27 @@
       "type": "image/jpeg",
       "platform": "narrow", 
       "label": "Optimized Route View"
+    },
+    {
+      "src": "/screenshots/tablet-1.jpg",
+      "sizes": "1536x2048",
+      "type": "image/jpeg",
+      "platform": "wide",
+      "label": "Tablet Login Screen"
+    },
+    {
+      "src": "/screenshots/tablet-2.jpg",
+      "sizes": "1536x2048", 
+      "type": "image/jpeg",
+      "platform": "wide",
+      "label": "Tablet Shopping List Creation"
+    },
+    {
+      "src": "/screenshots/tablet-3.jpg",
+      "sizes": "1536x2048",
+      "type": "image/jpeg",
+      "platform": "wide", 
+      "label": "Tablet Optimized Route View"
     }
   ],
   "shortcuts": [

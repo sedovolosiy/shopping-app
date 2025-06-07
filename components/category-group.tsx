@@ -7,6 +7,7 @@ import ListItemEntry from './list-item-entry';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useDevice } from '@/components/device-detector';
 
 interface CategoryGroupProps {
   categoryName: string;
@@ -33,6 +34,9 @@ const CategoryGroup: React.FC<CategoryGroupProps> = ({
   // Use the external state if provided, otherwise use internal state
   const isExpanded = externalIsExpanded !== undefined ? externalIsExpanded : internalIsExpanded;
   
+  // Определяем тип устройства
+  const { isTablet } = useDevice();
+  
   // Use a default icon for now, since storeType is removed
   const iconName = 'Package';
   const IconComponent = (Icons as any)[iconName] || Icons.Package;
@@ -50,12 +54,15 @@ const CategoryGroup: React.FC<CategoryGroupProps> = ({
     }
   };
 
+  // Определяем классы для адаптивного дизайна
+  const categoryClassName = isTablet ? "route-category tablet-text-lg" : "route-category";
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: categoryIndex * 0.05, duration: 0.3 }}
-      className="route-category"
+      className={categoryClassName}
     >
       <div 
         className="route-category-header cursor-pointer"
@@ -63,12 +70,12 @@ const CategoryGroup: React.FC<CategoryGroupProps> = ({
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
-              <IconComponent className="h-5 w-5 text-primary" />
+            <div className={`${isTablet ? 'w-11 h-11' : 'w-9 h-9'} bg-primary/10 rounded-lg flex items-center justify-center`}>
+              <IconComponent className={`${isTablet ? 'h-6 w-6' : 'h-5 w-5'} text-primary`} />
             </div>
             <div>
-              <h3 className="font-medium text-gray-800">{categoryName}</h3>
-              <div className="flex items-center gap-1 text-xs text-gray-500">
+              <h3 className={`font-medium text-gray-800 ${isTablet ? 'text-lg' : ''}`}>{categoryName}</h3>
+              <div className={`flex items-center gap-1 ${isTablet ? 'text-sm' : 'text-xs'} text-gray-500`}>
                 <span className="font-medium text-primary">{completedCount}/{totalCount}</span>
                 <span>товаров</span>
                 {completionPercentage === 100 && (

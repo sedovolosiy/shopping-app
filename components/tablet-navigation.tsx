@@ -23,8 +23,8 @@ const TabletNavigation: React.FC<TabletNavigationProps> = ({
   // Выбираем расположение в зависимости от ориентации
   const isLandscape = orientation === 'landscape';
   const navClassName = isLandscape 
-    ? 'fixed left-0 top-0 h-screen w-20 flex flex-col py-8 bg-white/90 backdrop-blur-sm dark:bg-gray-800/90 border-r border-gray-200 dark:border-gray-700'
-    : 'fixed bottom-0 left-0 right-0 h-20 flex bg-white/90 backdrop-blur-sm dark:bg-gray-800/90 border-t border-gray-200 dark:border-gray-700';
+    ? 'fixed left-0 top-0 h-screen w-20 flex flex-col py-8 bg-white/90 backdrop-blur-sm dark:bg-gray-800/90 border-r border-gray-200 dark:border-gray-700 z-50'
+    : 'fixed bottom-0 left-0 right-0 h-20 flex bg-white/90 backdrop-blur-sm dark:bg-gray-800/90 border-t border-gray-200 dark:border-gray-700 z-50';
   
   const itemsContainerClassName = isLandscape
     ? 'flex flex-col h-full items-center justify-center space-y-8'

@@ -77,7 +77,7 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
 
   // Определяем классы для адаптивного интерфейса
   const containerClasses = isTablet 
-    ? "route-screen w-full max-w-3xl mx-auto tablet-text-lg"
+    ? "route-screen w-full max-w-3xl mx-auto tablet-text-lg tablet-form-container"
     : "route-screen w-full max-w-md mx-auto";
     
   return (

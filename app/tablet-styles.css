@@ -3,94 +3,156 @@
 /* Основные планшетные стили применяются от 640px до 1024px */
 @media (min-width: 640px) and (max-width: 1024px) {
   .screen-flow {
-    @apply max-w-2xl;
+    max-width: 42rem;
   }
   
   /* Двухколоночная сетка для списков на планшетах */
   .tablet-grid {
-    @apply grid grid-cols-2 gap-4;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
   
   /* Адаптированная навигация для планшетов */
   .tablet-nav {
-    @apply flex justify-center space-x-2 py-3;
+    display: flex;
+    justify-content: center;
+    column-gap: 0.5rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
   }
   
   /* Боковые панели для планшетов в ландшафтном режиме */
   .tablet-sidebar {
-    @apply hidden md:block w-1/4 min-w-[16rem] border-r border-gray-200 dark:border-gray-700 h-screen overflow-y-auto;
+    display: none;
+  }
+  
+  @media (min-width: 768px) {
+    .tablet-sidebar {
+      display: block;
+      width: 25%;
+      min-width: 16rem;
+      border-right: 1px solid #e5e7eb;
+      height: 100vh;
+      overflow-y: auto;
+    }
   }
   
   /* Основной контент при наличии бокового меню */
   .tablet-main-content {
-    @apply w-3/4 h-screen overflow-y-auto;
+    width: 75%;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  
+  /* Убеждаемся, что планшетная навигация всегда видна */
+  .tablet-navigation {
+    z-index: 50;
+  }
+  
+  /* Дополнительный отступ для контента в портретной ориентации */
+  .tablet-content-portrait {
+    padding-bottom: 6rem;
+  }
+  
+  /* Дополнительный отступ для контента в ландшафтной ориентации */
+  .tablet-content-landscape {
+    margin-left: 5rem;
   }
 }
 
 /* Стили для планшетов в портретной ориентации */
 @media (min-width: 640px) and (max-width: 1024px) and (orientation: portrait) {
   .category-item {
-    @apply p-4;
+    padding: 1rem;
   }
   
   .route-category {
-    @apply p-5;
+    padding: 1.25rem;
   }
   
   /* Увеличенные элементы управления для лучшего тактильного управления */
   button, 
   .button, 
   .interactive-element {
-    @apply min-h-[3rem] min-w-[3rem];
+    min-height: 3rem;
+    min-width: 3rem;
   }
 }
 
 /* Стили для планшетов в ландшафтной ориентации */
 @media (min-width: 640px) and (max-width: 1024px) and (orientation: landscape) {
   .screen-flow {
-    @apply flex-row;
+    flex-direction: row;
   }
   
   .tablet-layout-horizontal {
-    @apply flex flex-row gap-4;
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
   }
   
   .tablet-panel {
-    @apply w-1/2;
+    width: 50%;
   }
 }
 
 /* Стили для кнопок и интерактивных элементов на планшетах */
 @media (min-width: 640px) and (max-width: 1024px) {
   .tablet-button {
-    @apply px-6 py-3 text-lg;
+    padding: 0.75rem 1.5rem;
+    font-size: 1.125rem;
   }
   
   /* Увеличенный размер шрифта для лучшей читаемости */
   .tablet-text-lg {
-    @apply text-lg;
+    font-size: 1.125rem;
   }
   
   .tablet-text-xl {
-    @apply text-xl;
+    font-size: 1.25rem;
   }
   
   /* Адаптивные карточки для планшетов */
   .screen-card {
-    @apply max-w-full;
+    max-width: 100%;
   }
 }
 
 /* Специфичные настройки для iPad */
 @media only screen and (min-device-width: 768px) and (max-device-width: 1024px) {
   .ipad-specific {
-    @apply shadow-lg rounded-xl;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-radius: 0.75rem;
   }
 }
 
 /* Специфичные настройки для Samsung Galaxy Tab */
 @media only screen and (min-device-width: 800px) and (max-device-width: 1280px) {
   .galaxy-tab-specific {
-    @apply shadow-lg rounded-xl;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-radius: 0.75rem;
+  }
+}
+
+/* Дополнительные стили для предотвращения перекрытия навигации */
+@media (min-width: 640px) and (max-width: 1024px) {
+  /* Убеждаемся, что модальные окна и формы не перекрывают навигацию */
+  .tablet-form-container {
+    margin-bottom: 6rem; /* дополнительный отступ снизу в портретной ориентации */
+  }
+  
+  @media (orientation: landscape) {
+    .tablet-form-container {
+      margin-left: 5rem; /* дополнительный отступ слева в ландшафтной ориентации */
+      margin-bottom: 0;
+    }
+  }
+  
+  /* Убеждаемся, что все интерактивные элементы имеют правильный z-index */
+  .tablet-modal,
+  .tablet-drawer,
+  .tablet-dropdown {
+    z-index: 40; /* ниже чем навигация (z-50) */
   }
 }

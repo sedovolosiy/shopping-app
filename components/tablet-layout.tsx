@@ -35,8 +35,8 @@ const TabletLayout: React.FC<TabletLayoutProps> = ({
         `}
       >
         <div className={`
-          max-w-4xl mx-auto p-6 h-full
-          ${isLandscape ? 'pt-8' : 'pb-8'}
+          max-w-4xl mx-auto p-6 
+          ${isLandscape ? 'h-full pt-8' : 'h-full pb-24'}
         `}>
           {children}
         </div>

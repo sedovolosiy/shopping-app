@@ -104,7 +104,7 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
 
   // Определяем классы в зависимости от типа устройства
   const cardClasses = isTablet 
-    ? "screen-card w-full max-w-2xl mx-auto shadow-md"
+    ? "screen-card w-full max-w-2xl mx-auto shadow-md tablet-form-container"
     : "screen-card w-full max-w-md mx-auto shadow-md";
     
   return (

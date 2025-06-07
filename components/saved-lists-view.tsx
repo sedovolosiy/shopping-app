@@ -129,7 +129,7 @@ export default function SavedListsView({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 tablet-form-container">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

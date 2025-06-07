@@ -99,160 +99,173 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-lg hover:shadow-xl transition-shadow duration-300">
-      <CardHeader className="text-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-lg">
-        <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+    <Card className="screen-card w-full max-w-md mx-auto shadow-md">
+      <CardHeader className="text-center bg-gradient-to-r from-primary to-accent text-white rounded-t-lg py-5">
+        <CardTitle className="flex items-center justify-center gap-2 text-xl">
           <ShoppingCart className="h-6 w-6" />
           {/* TODO: Localize this title based on user preferences */}
-          {isEditingExistingList ? 'Редактировать список покупок' : 'Оптимизатор списка покупок'}
+          {isEditingExistingList ? 'Редактировать список' : 'Оптимизатор списка покупок'}
         </CardTitle>
-        <CardDescription className="text-blue-100">
+        <CardDescription className="text-white/80 text-sm">
           {/* TODO: Localize this description */}
           {isEditingExistingList 
-            ? 'Измените товары в списке и обновите маршрут'
-            : 'Введите список товаров и выберите магазин для оптимального маршрута'
+            ? 'Измените товары и обновите маршрут'
+            : 'Введите список товаров для оптимизации'
           }
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6 p-6">
+      <CardContent className="space-y-5 p-5">
         {/* AI toggle inside the form */}
-        <div className="flex items-center gap-2 mb-2">
-          <label htmlFor="ai-toggle-form" className="text-sm font-medium text-gray-700">AI:</label>
-          <input
-            id="ai-toggle-form"
-            type="checkbox"
-            checked={useAI}
-            onChange={() => setUseAI(!useAI)}
-            className="accent-blue-600 h-4 w-4"
-          />
-          <span className="text-xs text-gray-500">{useAI ? 'Включен' : 'Выключен'}</span>
+        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+          <label htmlFor="ai-toggle-form" className="text-sm font-medium text-gray-700">Использовать AI для оптимизации:</label>
+          <div className="flex items-center">
+            <div 
+              className={`mobile-toggle ${useAI ? 'mobile-toggle-on' : 'mobile-toggle-off'}`} 
+              onClick={() => setUseAI(!useAI)}
+            >
+              <div className="mobile-toggle-slider" />
+            </div>
+            <span className="text-xs ml-2 font-medium text-gray-500">{useAI ? 'Вкл' : 'Выкл'}</span>
+          </div>
         </div>
 
-        {/* User Identifier Input - Simple version for now */}
-        <div className="space-y-2">
-          <Label htmlFor="user-id" className="text-base font-semibold">
-            {/* TODO: Localize this label */}
-            Ваш ID пользователя (для сохранения списков)
+        {/* User Identifier Input - Mobile-friendly version */}
+        <div className="form-input-group">
+          <Label htmlFor="user-id" className="form-label">
+            ID пользователя
           </Label>
           <input 
             type="text"
             id="user-id"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
-            placeholder="Введите ваш email или имя пользователя" // TODO: Localize
-            className="w-full p-2 border border-gray-300 rounded-md"
+            placeholder="Введите ваш email или ID" 
+            className="form-input"
+            readOnly={isEditingExistingList}
           />
+          {userId && <p className="text-xs text-gray-500 mt-1">Списки будут сохранены под этим ID</p>}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="list-name" className="text-base font-semibold">
-            {/* TODO: Localize this label */}
-            Название списка (необязательно)
+        <div className="form-input-group">
+          <Label htmlFor="list-name" className="form-label">
+            Название списка
           </Label>
           <input 
             type="text"
             id="list-name"
             value={listName}
             onChange={(e) => setListName(e.target.value)}
-            placeholder="Например, Еженедельные покупки" // TODO: Localize
-            className="w-full p-2 border border-gray-300 rounded-md"
+            placeholder="Например: Еженедельные покупки" 
+            className="form-input"
           />
+          <p className="text-xs text-gray-500 mt-1">Необязательное поле</p>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="store-select" className="text-base font-semibold flex items-center gap-2">
-            <StoreIcon className="h-4 w-4" />
-            {/* TODO: Localize this label */}
+        <div className="form-input-group">
+          <Label htmlFor="store-select" className="form-label flex items-center gap-2">
+            <StoreIcon className="h-4 w-4 text-primary" />
             Выберите магазин
           </Label>
           <Select value={selectedStoreId} onValueChange={(value: string) => setSelectedStoreId(value)}>
-            <SelectTrigger id="store-select" className="w-full">
-              {/* TODO: Localize this placeholder */}
+            <SelectTrigger id="store-select" className="form-select h-12">
               <SelectValue placeholder="Выберите магазин" />
             </SelectTrigger>
-            <SelectContent>
-              {currentStores.length > 0 ? ( // Use currentStores instead of availableStores
-                currentStores.map((store) => ( // Use currentStores instead of availableStores
-                  <SelectItem key={store.id} value={store.id}>
+            <SelectContent position="popper" className="max-h-60">
+              {currentStores.length > 0 ? (
+                currentStores.map((store) => (
+                  <SelectItem key={store.id} value={store.id} className="py-3">
                     {store.name}
                   </SelectItem>
                 ))
               ) : (
                 <SelectItem value="no-stores-available" disabled>
-                  {/* TODO: Localize */}
-                  Нет доступных магазинов. Добавьте новый.
+                  Нет доступных магазинов
                 </SelectItem>
               )}
             </SelectContent>
           </Select>
           
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <Label htmlFor="new-store-name" className="text-sm font-medium">
-                {/* TODO: Localize */}
-                Или добавьте новый магазин:
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <Label htmlFor="new-store-name" className="text-sm font-medium text-gray-600 flex items-center gap-1">
+                <span className="inline-block w-1.5 h-1.5 bg-primary rounded-full"></span>
+                Добавить новый магазин:
             </Label>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-2">
               <input 
                 type="text"
                 id="new-store-name"
                 value={newStoreName}
                 onChange={(e) => {
                   setNewStoreName(e.target.value);
-                  if (addStoreError) setAddStoreError(null); // Clear error on typing
+                  if (addStoreError) setAddStoreError(null);
                 }}
-                placeholder="Название нового магазина" // TODO: Localize
-                className={`w-full p-2 border rounded-md ${addStoreError ? 'border-red-500' : 'border-gray-300'}`}
+                placeholder="Название нового магазина"
+                className={`form-input ${addStoreError ? 'border-red-500' : ''}`}
                 disabled={isAddingStore}
               />
-              <Button onClick={handleAddStore} disabled={isAddingStore || !newStoreName.trim()} className="whitespace-nowrap">
-                {/* TODO: Localize */}
-                {isAddingStore ? 'Добавление...' : 'Добавить магазин'}
+            </div>
+            <div className="mt-2">
+              <Button 
+                onClick={handleAddStore} 
+                disabled={isAddingStore || !newStoreName.trim()} 
+                className="w-full h-10 text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200"
+              >
+                {isAddingStore ? 'Добавление...' : 'Добавить новый магазин'}
               </Button>
             </div>
             {addStoreError && <p className="text-sm text-red-600 mt-1">{addStoreError}</p>}
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="shopping-list" className="text-base font-semibold">
-            {/* TODO: Localize this label */}
-            Список покупок
-          </Label>
-          <Textarea
-            id="shopping-list"
-            // TODO: Localize this placeholder
-            placeholder="Введите товары, каждый с новой строки:&#10;молоко&#10;хлеб&#10;яблоки&#10;..."
-            value={rawText}
-            onChange={(e) => setRawText(e.target.value)}
-            className="min-h-[200px] resize-none"
-          />
-          <div className="flex justify-between items-center">
+        <div className="form-input-group">
+          <div className="flex items-center justify-between mb-1">
+            <Label htmlFor="shopping-list" className="form-label flex items-center">
+              Список покупок
+              <span className="ml-2 text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                {rawText.split('\n').filter(line => line.trim()).length} товаров
+              </span>
+            </Label>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={handleExampleLoad}
-              className="text-sm"
+              className="text-xs text-primary h-7"
             >
-              {/* TODO: Localize this button text */}
-              Загрузить пример
+              Пример списка
             </Button>
-            <span className="text-sm text-muted-foreground">
-              {/* TODO: Localize this text */}
-              {rawText.split('\n').filter(line => line.trim()).length} товаров
-            </span>
           </div>
+          <Textarea
+            id="shopping-list"
+            placeholder="Введите товары, по одному на строку:
+
+молоко
+хлеб
+яблоки
+сыр
+..."
+            value={rawText}
+            onChange={(e) => setRawText(e.target.value)}
+            className="form-textarea min-h-[180px]"
+          />
+          <p className="text-xs text-gray-500 mt-1">Каждый товар с новой строки</p>
         </div>
 
-        {/* Show the appropriate buttons based on state */}
-        <div className="flex flex-col gap-3">
+        {/* Action buttons with mobile-friendly styling */}
+        <div className="sticky-footer bg-white pt-4 -mx-5 -mb-5 px-5 pb-5 border-t border-gray-100 mt-6">
           {/* Optimize button */}
           <Button
             onClick={() => onOptimize(userId, listName)}
-            disabled={!rawText.trim() || !selectedStoreId || !userId.trim() || isLoading} // Added isLoading to disable during loading
-            className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
+            disabled={!rawText.trim() || !selectedStoreId || !userId.trim() || isLoading}
+            className="w-full h-14 text-lg font-medium bg-gradient-to-r from-primary to-accent text-white hover:opacity-95 shadow-md rounded-xl"
           >
-            {/* TODO: Localize button text based on isOptimized and user language */}
-            {isOptimized ? 'Обновить маршрут' : 'Оптимизировать маршрут'}
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <div className="h-5 w-5 rounded-full border-2 border-current border-t-transparent animate-spin mr-2"></div>
+                <span>Обработка...</span>
+              </div>
+            ) : (
+              <>{isOptimized ? 'Обновить маршрут' : 'Оптимизировать маршрут'}</>
+            )}
           </Button>
           
           {/* New List button - show only after optimization */}
@@ -260,7 +273,7 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
             <Button
               onClick={onReset}
               variant="outline"
-              className="w-full h-10 text-base font-medium border-blue-500 text-blue-600 hover:bg-blue-50"
+              className="w-full h-12 mt-3 text-base font-medium border-gray-300 text-gray-600 hover:bg-gray-50"
             >
               Новый список
             </Button>

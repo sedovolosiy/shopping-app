@@ -52,52 +52,61 @@ const CategoryGroup: React.FC<CategoryGroupProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: categoryIndex * 0.1, duration: 0.4 }}
+      transition={{ delay: categoryIndex * 0.05, duration: 0.3 }}
+      className="route-category"
     >
-      <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 border-l-4 border-l-blue-500">
-        <CardHeader 
-          className="pb-3 cursor-pointer"
-          onClick={toggleExpand}
-        >
-          <CardTitle className="flex items-center justify-between text-lg">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <IconComponent className="h-5 w-5 text-blue-600" />
-              </div>
-              <span className="font-semibold text-gray-800">{categoryName}</span>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleExpand();
-                }}
-                className="ml-2 p-1 rounded-full hover:bg-gray-200"
-              >
-                {isExpanded ? (
-                  <ChevronUp className="h-4 w-4 text-gray-500" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
+      <div 
+        className="route-category-header cursor-pointer"
+        onClick={toggleExpand}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
+              <IconComponent className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-800">{categoryName}</h3>
+              <div className="flex items-center gap-1 text-xs text-gray-500">
+                <span className="font-medium text-primary">{completedCount}/{totalCount}</span>
+                <span>товаров</span>
+                {completionPercentage === 100 && (
+                  <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full text-xs ml-1">
+                    Завершено
+                  </span>
                 )}
-              </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">
-                {completedCount}/{totalCount}
-              </span>
-              {completionPercentage > 0 && (
-                <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${completionPercentage}%` }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    className="h-full bg-green-500 rounded-full"
-                  />
-                </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {completionPercentage > 0 && completionPercentage < 100 && (
+              <div className="w-12 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${completionPercentage}%` }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="h-full bg-primary rounded-full"
+                />
+              </div>
+            )}
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleExpand();
+              }}
+              className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 text-gray-600"
+            >
+              {isExpanded ? (
+                <ChevronUp className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5" />
               )}
-            </div>
-          </CardTitle>
-        </CardHeader>
+            </button>
+          </div>
+        </div>
+      </div>
         
         <AnimatePresence>
           {isExpanded && (
@@ -105,9 +114,10 @@ const CategoryGroup: React.FC<CategoryGroupProps> = ({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
             >
-              <CardContent className="space-y-2">
+              <div className="pt-2 pb-1 px-1 mt-2 border-t border-gray-100">
                 {items.map((item, index) => (
                   <ListItemEntry
                     key={item.id}
@@ -117,11 +127,10 @@ const CategoryGroup: React.FC<CategoryGroupProps> = ({
                     index={index}
                   />
                 ))}
-              </CardContent>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
-      </Card>
     </motion.div>
   );
 };

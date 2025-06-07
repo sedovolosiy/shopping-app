@@ -1,25 +1,25 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-// Assuming StoreType might be different from the Store interface expected by ShoppingListForm
-// import { ShoppingItem, StoreType } from '@/lib/types'; 
-import { ShoppingItem } from '@/lib/types'; // Keep ShoppingItem if used by OptimizedListView
+import { ShoppingItem } from '@/lib/types';
 import { processShoppingList, categorizeItem, getCategoryOrder } from '@/lib/store-data';
 import ShoppingListForm from '@/components/shopping-list-form';
 import OptimizedListView from '@/components/optimized-list-view';
-import AIStatus from '@/components/ai-status';
-import FullPageLoader from '@/components/full-page-loader';
 import UserLogin from '@/components/user-login';
 import SavedListsView from '@/components/saved-lists-view';
-import { Button } from '@/components/ui/button';
-import { ListPlus } from 'lucide-react';
 import MainClientContent from "./MainClientContent";
+import MobileBottomNavigation from '@/components/mobile-bottom-navigation';
+import MobileDrawer from '@/components/mobile-drawer';
+import MobileFilter from '@/components/mobile-filter';
+import InstallPrompt from '@/components/install-prompt';
+import OrientationHandler from '@/components/orientation-handler';
+import { useTheme } from '@/components/theme-provider';
+import { Moon, Sun } from 'lucide-react';
 
 // Define the Store interface expected by ShoppingListForm and for availableStores
 interface Store {
   id: string;
   name: string;
-  // storeType?: string; // Keep if needed elsewhere, but not for OptimizedListView's storeName
 }
 
 // App state enum for better state management
@@ -31,6 +31,14 @@ enum AppState {
 }
 
 export default function HomePage() {
+  // Theme state
+  const { theme, setTheme } = useTheme();
+  
+  // Mobile UI state
+  const [activeTab, setActiveTab] = useState<string>("home");
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState<boolean>(false);
+  const [isSettingsDrawerOpen, setIsSettingsDrawerOpen] = useState<boolean>(false);
+  
   // Main app state
   const [appState, setAppState] = useState<AppState>(AppState.LOGIN);
   const [currentUserId, setCurrentUserId] = useState<string>('');
@@ -42,13 +50,13 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isAIProcessed, setIsAIProcessed] = useState<boolean>(false);
-  const [showForm, setShowForm] = useState<boolean>(true); // Control form visibility
+  const [showForm, setShowForm] = useState<boolean>(true);
 
-  // New state variables required by ShoppingListForm
+  // Form state variables
   const [listName, setListName] = useState<string>('');
-  const [availableStores, setAvailableStores] = useState<Store[]>([]); // Initialize as empty array
-  const [selectedStoreId, setSelectedStoreId] = useState<string>(''); // For the Select component in the form
-  const [isEditingExistingList, setIsEditingExistingList] = useState<boolean>(false); // Track if we're editing an existing list
+  const [availableStores, setAvailableStores] = useState<Store[]>([]);
+  const [selectedStoreId, setSelectedStoreId] = useState<string>('');
+  const [isEditingExistingList, setIsEditingExistingList] = useState<boolean>(false);
   const [currentStoreName, setCurrentStoreName] = useState<string>('Загрузка магазина...');
 
   // Saved lists state
@@ -56,24 +64,62 @@ export default function HomePage() {
   const [isLoadingSavedLists, setIsLoadingSavedLists] = useState<boolean>(false);
 
   // AI toggle state
-  const [useAI, setUseAI] = useState<boolean>(true); // AI enabled by default
+  const [useAI, setUseAI] = useState<boolean>(true);
+  
+  // Filter state
+  const [appliedFilters, setAppliedFilters] = useState<any>({
+    sortOption: 'category',
+    showCompleted: true,
+    selectedCategories: [],
+    priceRange: [0, 5000]
+  });
+
+  // Handle bottom navigation tab changes
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    
+    switch (tab) {
+      case "home":
+        // If logged in, show saved lists. Otherwise, show login
+        if (currentUserId) {
+          setAppState(AppState.SAVED_LISTS);
+        } else {
+          setAppState(AppState.LOGIN);
+        }
+        break;
+      case "new":
+        setAppState(AppState.CREATE_NEW);
+        break;
+      case "cart":
+        // If there are optimized items, show them. Otherwise, create a new list
+        if (optimizedItems.length > 0) {
+          setAppState(AppState.OPTIMIZED);
+        } else {
+          setAppState(AppState.CREATE_NEW);
+        }
+        break;
+      case "settings":
+        setIsSettingsDrawerOpen(true);
+        break;
+    }
+  };
+  
+  // Handle filter application
+  const handleApplyFilters = (filters: any) => {
+    setAppliedFilters(filters);
+    // Additional logic to filter optimizedItems would go here
+  };
 
   // Load available stores on component mount
   useEffect(() => {
     const fetchStoresLogic = async () => {
       if (availableStores.length === 0) {
-        // Fetch stores only if they are not loaded
-        console.log('Fetching stores as availableStores is empty...');
         try {
-          // Import here to avoid circular dependencies
           const { getStores } = await import('@/lib/api-client');
           const fetchedStores = await getStores();
-          console.log('Fetched stores:', fetchedStores);
-          setAvailableStores(fetchedStores); // Update state with fetched stores
+          setAvailableStores(fetchedStores);
 
-          // After fetching, if no store is selected and current state is CREATE_NEW, set default
           if (fetchedStores.length > 0 && !selectedStoreId && appState === AppState.CREATE_NEW) {
-            console.log('Setting default store for CREATE_NEW after successful fetch:', fetchedStores[0].id);
             setSelectedStoreId(fetchedStores[0].id);
           }
         } catch (error) {
@@ -84,16 +130,13 @@ export default function HomePage() {
             { id: 'aldi', name: 'Aldi' }
           ];
           setAvailableStores(defaultStoresOnError);
-          // After setting fallback, if no store is selected and current state is CREATE_NEW, set default
+          
           if (defaultStoresOnError.length > 0 && !selectedStoreId && appState === AppState.CREATE_NEW) {
-            console.log('Setting default store from fallback for CREATE_NEW:', defaultStoresOnError[0].id);
             setSelectedStoreId(defaultStoresOnError[0].id);
           }
         }
       } else {
-        // Stores are already loaded. Check if we are in CREATE_NEW and no store is selected.
         if (appState === AppState.CREATE_NEW && !selectedStoreId && availableStores.length > 0) {
-          console.log('Stores already loaded, in CREATE_NEW, no selection. Setting default:', availableStores[0].id);
           setSelectedStoreId(availableStores[0].id);
         }
       }
@@ -103,9 +146,9 @@ export default function HomePage() {
     if (appState === AppState.CREATE_NEW || appState === AppState.OPTIMIZED) {
       fetchStoresLogic();
     }
-  }, [appState, selectedStoreId, availableStores.length]); // Dependencies
+  }, [appState, selectedStoreId, availableStores.length]);
 
-  // New useEffect to update currentStoreName when selectedStoreId or availableStores change
+  // Update current store name when selection changes
   useEffect(() => {
     if (selectedStoreId && availableStores.length > 0) {
       const store = availableStores.find(s => s.id === selectedStoreId);
@@ -116,7 +159,7 @@ export default function HomePage() {
       setCurrentStoreName('Магазин не выбран');
     }
   }, [selectedStoreId, availableStores]);
-
+  
   // Load saved lists when user is selected
   const loadSavedLists = useCallback(async () => {
     if (!currentUserId) return;
@@ -142,9 +185,7 @@ export default function HomePage() {
 
   // Implementation for onAddStore with API client
   const handleAddStore = useCallback(async (storeName: string): Promise<Store | null> => {
-    console.log('Attempting to add store:', storeName);
     try {
-      // Import here to avoid circular dependencies
       const { addStore } = await import('@/lib/api-client');
       
       const newStore = await addStore(storeName);
@@ -153,7 +194,6 @@ export default function HomePage() {
       return newStore;
     } catch (error) {
       console.error('Error adding store:', error);
-      // As a fallback, create a mock store with clientside ID
       const mockNewStore = { id: `mock-${Date.now()}`, name: storeName };
       setAvailableStores(prev => [...prev, mockNewStore]);
       setSelectedStoreId(mockNewStore.id);
@@ -190,7 +230,7 @@ export default function HomePage() {
       } else {
         // Локальная обработка без AI
         const storeForProcessing = availableStores.find(s => s.id === selectedStoreId)?.name || 'default';
-        const processedItems = await processShoppingList(rawText, storeForProcessing as any);
+        let processedItems = await processShoppingList(rawText, storeForProcessing as any);
         if (!Array.isArray(processedItems)) {
           processedItems = processedItems ? [processedItems] : [];
         }
@@ -478,153 +518,238 @@ export default function HomePage() {
     }
   }, [currentUserId, loadSavedLists]);
 
-  // Render different views based on app state
-  const renderCurrentView = () => {
+  // Update activeTab based on appState
+  useEffect(() => {
     switch (appState) {
       case AppState.LOGIN:
-        return (
-          <UserLogin 
-            onUserSelect={handleUserLogin} 
-            isLoading={isLoading} 
-          />
-        );
+      case AppState.SAVED_LISTS:
+        setActiveTab("home");
+        break;
+      case AppState.CREATE_NEW:
+        setActiveTab("new");
+        break;
+      case AppState.OPTIMIZED:
+        setActiveTab("cart");
+        break;
+    }
+  }, [appState]);
+  
+  // Handle authenticate - update to set active tab
+  const handleAuthenticate = useCallback((userId: string) => {
+    setCurrentUserId(userId);
+    setAppState(AppState.SAVED_LISTS);
+    setActiveTab("home");
+  }, []);
 
+  // Main render logic for different views
+  // Additional handler functions for mobile UI
+  const handleItemCheck = useCallback((itemId: string) => {
+    setOptimizedItems(prevItems =>
+      prevItems.map(item =>
+        item.id === itemId ? { ...item, purchased: !item.purchased } : item
+      )
+    );
+  }, []);
+  
+  const handleLoadList = useCallback((list: any) => {
+    // Implementation would go here
+    console.log("Loading list", list);
+    
+    // Set form values
+    setRawText(list.rawText || '');
+    setListName(list.name || '');
+    setSelectedStoreId(list.storeId || '');
+    setIsEditingExistingList(true);
+    
+    // If list has items, set them
+    if (list.items && list.items.length > 0) {
+      setOptimizedItems(list.items);
+      setIsOptimized(true);
+      setAppState(AppState.OPTIMIZED);
+    } else {
+      setAppState(AppState.CREATE_NEW);
+    }
+  }, []);
+
+  const handleCreateNewList = useCallback(() => {
+    setAppState(AppState.CREATE_NEW);
+    setRawText('');
+    setListName('');
+    setIsEditingExistingList(false);
+  }, []);
+
+  const handleCancelEdit = useCallback(() => {
+    if (isEditingExistingList) {
+      setAppState(AppState.SAVED_LISTS);
+    }
+    // If not editing an existing list, there's nowhere to go back to
+  }, [isEditingExistingList]);
+  
+  const renderCurrentView = useCallback(() => {
+    switch (appState) {
+      case AppState.LOGIN:
+        return <UserLogin onUserSelect={handleAuthenticate} />;
+      
       case AppState.SAVED_LISTS:
         return (
           <SavedListsView
             userId={currentUserId}
             savedLists={savedLists}
             isLoading={isLoadingSavedLists}
-            onSelectList={handleSelectSavedList}
-            onCreateNew={handleCreateNew}
-            onLogout={handleLogout}
-            onRefresh={handleRefreshSavedLists}
-            onDeleteList={deleteList}
+            onSelectList={handleLoadList}
+            onCreateNew={handleCreateNewList}
+            onLogout={() => {
+              setCurrentUserId('');
+              setAppState(AppState.LOGIN);
+            }}
+            onRefresh={loadSavedLists}
           />
         );
-
+      
       case AppState.CREATE_NEW:
         return (
-          <div className="space-y-8">
-            <ShoppingListForm
-              rawText={rawText}
-              setRawText={setRawText}
-              onOptimize={handleOptimize}
-              isOptimized={isOptimized}
-              userId={currentUserId}
-              setUserId={setCurrentUserId}
-              listName={listName}
-              setListName={setListName}
-              availableStores={availableStores}
-              onAddStore={handleAddStore}
-              selectedStoreId={selectedStoreId}
-              setSelectedStoreId={setSelectedStoreId}
-              isLoading={isLoading}
-              onReset={handleReset}
-              isEditingExistingList={isEditingExistingList}
-              useAI={useAI}
-              setUseAI={setUseAI}
-            />
-          </div>
+          <ShoppingListForm
+            rawText={rawText}
+            setRawText={setRawText}
+            useAI={useAI}
+            setUseAI={setUseAI}
+            listName={listName}
+            setListName={setListName}
+            availableStores={availableStores}
+            selectedStoreId={selectedStoreId}
+            setSelectedStoreId={setSelectedStoreId}
+            isEditingExistingList={isEditingExistingList}
+            onAddStore={handleAddStore}
+            onOptimize={handleOptimize}
+            isOptimized={isOptimized}
+            userId={currentUserId}
+            setUserId={setCurrentUserId}
+            isLoading={isLoading}
+            onReset={handleCancelEdit}
+          />
         );
-
+      
       case AppState.OPTIMIZED:
         return (
-          <div className="space-y-8">
-            {/* Show form if toggled */}
-            {showForm && (
-              <ShoppingListForm
-                rawText={rawText}
-                setRawText={setRawText}
-                onOptimize={handleOptimize}
-                isOptimized={isOptimized}
-                userId={currentUserId}
-                setUserId={setCurrentUserId}
-                listName={listName}
-                setListName={setListName}
-                availableStores={availableStores}
-                onAddStore={handleAddStore}
-                selectedStoreId={selectedStoreId} // Pass selectedStoreId
-                setSelectedStoreId={setSelectedStoreId}
-                isLoading={isLoading}
-                onReset={handleReset}
-                isEditingExistingList={isEditingExistingList}
-                useAI={useAI}
-                setUseAI={setUseAI}
-              />
-            )}
-
-            {/* Optimized list */}
-            <OptimizedListView
-              items={optimizedItems}
-              storeName={currentStoreName} // Use the new state variable here
-              onToggleItem={handleToggleItem}
-              onDeleteItem={handleDeleteItem}
-              onReset={handleReset}
-              isAIProcessed={isAIProcessed}
-              onToggleForm={toggleFormVisibility}
-            />
-          </div>
+          <OptimizedListView
+            items={optimizedItems}
+            storeName={currentStoreName}
+            onToggleItem={handleItemCheck}
+            onReset={handleReset}
+            isAIProcessed={isAIProcessed}
+            onToggleForm={() => setShowForm(!showForm)}
+          />
         );
-
+      
       default:
         return null;
     }
+  }, [
+    appState, 
+    currentUserId, 
+    rawText, 
+    listName, 
+    availableStores,
+    selectedStoreId, 
+    isEditingExistingList, 
+    optimizedItems, 
+    savedLists, 
+    isLoadingSavedLists,
+    useAI,
+    currentStoreName,
+    appliedFilters,
+    handleAuthenticate,
+    handleAddStore,
+    handleOptimize
+  ]);
+
+  // Theme toggle handler
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* AI toggle switch */}
-      <div className="fixed top-4 right-4 z-50 flex items-center space-x-2 bg-white/80 px-4 py-2 rounded shadow">
-        <label htmlFor="ai-toggle" className="text-sm font-medium text-gray-700">AI:</label>
-        <input
-          id="ai-toggle"
-          type="checkbox"
-          checked={useAI}
-          onChange={() => setUseAI(v => !v)}
-          className="accent-blue-600 h-4 w-4"
+    <OrientationHandler forcePortrait={false}>
+      <div className="min-h-screen">
+        <MainClientContent
+          appState={appState}
+          isOptimized={isOptimized}
+          isLoading={isLoading}
+          isAIProcessed={isAIProcessed}
+          error={error}
+          renderCurrentView={renderCurrentView}
+          handleReset={handleReset}
+          showForm={showForm}
+          optimizedItems={optimizedItems}
         />
-        <span className="text-xs text-gray-500">{useAI ? 'Включен' : 'Выключен'}</span>
-      </div>
-
-      {/* Заголовок приложения */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Умный помощник для покупок
-          </h1>
-          <p className="text-center text-gray-600 mt-2">
-            Оптимизируйте свой маршрут в магазинах Lidl, Biedronka и Aldi
-          </p>
-        </div>
-      </header>
-
-      {/* Клиентский контент с анимациями и состояниями */}
-      <MainClientContent
-        appState={appState}
-        isOptimized={isOptimized}
-        isLoading={isLoading}
-        isAIProcessed={isAIProcessed}
-        error={error}
-        renderCurrentView={renderCurrentView}
-        handleReset={handleReset}
-        showForm={showForm}
-        optimizedItems={optimizedItems}
-      />
-
-      {/* Подвал */}
-      <footer className="bg-gray-50 border-t border-gray-200 mt-16">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center text-gray-600 text-sm">
-            <p className="mb-2">
-              Приложение основано на исследовании планировки магазинов Lidl, Biedronka и Aldi
-            </p>
-            <p className="text-xs text-gray-500">
-              Маршруты могут отличаться в зависимости от конкретного магазина
-            </p>
+        
+        {/* Only show bottom navigation when user is logged in */}
+        {appState !== AppState.LOGIN && (
+          <MobileBottomNavigation 
+            activeTab={activeTab} 
+            onTabChange={handleTabChange}
+            onFilterClick={() => appState === AppState.OPTIMIZED && setIsFilterDrawerOpen(true)}
+          />
+        )}
+        
+        {/* Filter drawer for optimized shopping list */}
+        <MobileDrawer
+          isOpen={isFilterDrawerOpen}
+          onClose={() => setIsFilterDrawerOpen(false)}
+          title="Фильтры"
+          position="bottom"
+        >
+          <MobileFilter 
+            onApplyFilters={handleApplyFilters}
+            onClose={() => setIsFilterDrawerOpen(false)}
+          />
+        </MobileDrawer>
+        
+        {/* Settings drawer */}
+        <MobileDrawer
+          isOpen={isSettingsDrawerOpen}
+          onClose={() => setIsSettingsDrawerOpen(false)}
+          title="Настройки"
+          position="right"
+        >
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-700 dark:text-gray-300">Тёмная тема</span>
+              <button 
+                onClick={toggleTheme}
+                className="p-2 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
+              >
+                {theme === 'dark' ? 
+                  <Sun className="h-5 w-5 text-yellow-400" /> : 
+                  <Moon className="h-5 w-5 text-gray-700" />
+                }
+              </button>
+            </div>
+            
+            {/* More settings would go here */}
+            
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+              {currentUserId && (
+                <button 
+                  onClick={() => {
+                    setCurrentUserId('');
+                    setAppState(AppState.LOGIN);
+                    setIsSettingsDrawerOpen(false);
+                  }}
+                  className="text-red-500 hover:text-red-600 dark:hover:text-red-400 text-sm"
+                >
+                  Выйти
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      </footer>
-    </div>
+        </MobileDrawer>
+        
+        {/* App installation prompt */}
+        <InstallPrompt />
+      </div>
+    </OrientationHandler>
   );
+  
+  // All the existing functions like handleOptimize, handleItemCheck, etc. would remain here
 }

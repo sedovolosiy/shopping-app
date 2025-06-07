@@ -71,110 +71,123 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
-      {/* Заголовок с прогрессом */}
-      <Card className="shadow-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Route className="h-6 w-6" />
-              <span>Оптимальный маршрут для {storeName}</span>
-              {isAIProcessed && <AITag isActive={true} />}
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleExpandAll}
-                className="text-indigo-600 border-white hover:bg-white hover:text-indigo-700"
-              >
-                <ChevronsUpDown className="h-4 w-4 mr-2" />
-                {expandAll ? 'Свернуть все' : 'Развернуть все'}
-              </Button>
-              {onToggleForm && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onToggleForm}
-                  className="text-indigo-600 border-white hover:bg-white hover:text-indigo-700"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Изменить список
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onReset}
-                className="text-indigo-600 border-white hover:bg-white hover:text-indigo-700"
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Сбросить
-              </Button>
-            </div>
-          </CardTitle>
-          <CardDescription className="text-indigo-100">
-            Следуйте порядку категорий для эффективного похода по магазину
+    <div className="route-screen w-full max-w-md mx-auto">
+      {/* Progress bar at the top */}
+      <div className="route-progress">
+        <div
+          className="route-progress-value"
+          style={{ width: `${completionPercentage}%` }}
+        />
+      </div>
+      
+      {/* Header with controls */}
+      <div className="route-header">
+        <div className="flex items-center gap-2">
+          <Route className="h-5 w-5 text-primary" />
+          <h2 className="text-base font-medium">Маршрут <span className="font-normal text-sm">• {storeName}</span></h2>
+          {isAIProcessed && <AITag isActive={true} />}
+        </div>
+        
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleExpandAll}
+            className="h-8 w-8 text-gray-600"
+            title={expandAll ? 'Свернуть все' : 'Развернуть все'}
+          >
+            <ChevronsUpDown className="h-4 w-4" />
+          </Button>
+          {onToggleForm && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onToggleForm}
+              className="h-8 w-8 text-gray-600"
+              title="Редактировать список"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onReset}
+            className="h-8 w-8 text-gray-600"
+            title="Новый список"
+          >
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      
+      {/* Progress indicator */}
+      <Card className="shadow-md bg-gradient-to-r from-primary to-accent text-white mb-4">
+        <CardHeader className="py-3 px-4">
+          <CardDescription className="text-white/80 text-xs">
+            Следуйте порядку категорий для оптимального маршрута
           </CardDescription>
         </CardHeader>
         
-        <CardContent>
-          <div className="flex items-center justify-between mb-4">
+        <CardContent className="py-3 px-4">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               {completionPercentage === 100 ? (
                 <CheckCircle2 className="h-5 w-5 text-green-300" />
               ) : (
-                <Circle className="h-5 w-5 text-white" />
+                <Circle className="h-5 w-5 text-white/70" />
               )}
-              <span className="text-lg font-semibold">
-                Прогресс: {completedItems}/{totalItems} товаров
+              <span className="text-base">
+                <span className="font-medium">{completedItems}/{totalItems}</span> товаров
               </span>
             </div>
-            <span className="text-lg font-bold">
+            <span className="text-xl font-bold">
               {Math.round(completionPercentage)}%
             </span>
           </div>
           
-          <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden">
+          <div className="w-full h-2.5 bg-white/20 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${completionPercentage}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full"
+              className="h-full bg-green-400 rounded-full"
             />
           </div>
-          
-          {completionPercentage === 100 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5 }}
-              className="mt-4 p-4 bg-green-500 rounded-lg text-center"
-            >
-              <motion.div 
-                initial={{ scale: 1 }}
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: 2, duration: 0.7 }}
-              >
-                <CheckCircle2 className="h-8 w-8 mx-auto mb-2" />
-              </motion.div>
-              <p className="font-semibold text-lg mb-3">Поздравляем! Все товары куплены!</p>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={onReset}
-                className="mt-2 bg-white text-green-700 hover:bg-green-50 border-white font-medium"
-              >
-                <ListPlus className="h-5 w-5 mr-2" />
-                Новый список
-              </Button>
-            </motion.div>
-          )}
         </CardContent>
       </Card>
+      
+      {/* Congratulations card when completed */}
+      {completionPercentage === 100 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mb-4 p-5 bg-green-500 rounded-xl text-center text-white shadow-lg"
+        >
+          <motion.div 
+            initial={{ scale: 1 }}
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ repeat: 1, duration: 0.7 }}
+            className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3"
+          >
+            <CheckCircle2 className="h-8 w-8" />
+          </motion.div>
+          <p className="font-medium text-lg mb-4">Поздравляем! Все товары куплены!</p>
+          <Button
+            variant="secondary"
+            size="lg"
+            onClick={onReset}
+            className="w-full h-12 bg-white text-green-700 hover:bg-green-50 border-0 font-medium"
+          >
+            <ListPlus className="h-5 w-5 mr-2" />
+            Новый список
+          </Button>
+        </motion.div>
+      )}
 
       {/* Список категорий */}
-      <div className="space-y-4">
+      <div className="space-y-3 mb-20">
         {sortedCategories.map((categoryName, index) => (
           <CategoryGroup
             key={categoryName}
@@ -189,19 +202,31 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
         ))}
       </div>
 
-      {/* Информация о маршруте */}
-      <Card className="bg-gray-50 border-dashed">
-        <CardContent className="pt-6">
-          <div className="text-center text-sm text-gray-600">
-            <p className="mb-2">
-              <strong>Совет:</strong> Следуйте порядку категорий сверху вниз для оптимального маршрута в {storeName}
-            </p>
-            <p className="text-xs text-gray-500">
-              Маршрут основан на типичной планировке магазинов {storeName}
-            </p>
+      {/* Информация и подсказки внизу */}
+      <div className="text-center text-xs text-gray-500 mb-4">
+        <p>Оптимальный маршрут для планировки {storeName}</p>
+      </div>
+      
+      {/* Fixed footer with actions */}
+      <div className="route-footer">
+        <div className="flex items-center">
+          <div className="flex items-center gap-1 text-sm text-gray-700">
+            <Route className="h-4 w-4 text-primary" />
+            <span>Оптимизировано для {storeName}</span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        {onToggleForm && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onToggleForm}
+            className="text-sm bg-blue-50 border-blue-100 text-blue-700 hover:bg-blue-100"
+          >
+            <Edit className="h-3.5 w-3.5 mr-1.5" />
+            Изменить список
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

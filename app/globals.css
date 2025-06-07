@@ -11,42 +11,56 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 226 71% 40%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96%;
     --secondary-foreground: 222.2 84% 4.9%;
     --muted: 210 40% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent: 262 83% 58%;
+    --accent-foreground: 210 40% 98%;
+    --success: 142 76% 36%;
+    --success-foreground: 210 40% 98%;
+    --info: 202 80% 44%;
+    --info-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --ring: 226 71% 40%;
+    --radius: 0.75rem;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 222.2 94% 5.9%;
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
+    --primary: 226 71% 50%;
     --primary-foreground: 222.2 84% 4.9%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 262 83% 68%;
     --accent-foreground: 210 40% 98%;
+    --success: 142 76% 36%;
+    --success-foreground: 210 40% 98%;
+    --info: 202 80% 64%;
+    --info-foreground: 222.2 84% 4.9%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+    --ring: 226 71% 50%;
+  }
+  
+  /* Smooth scrolling for whole page */
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
@@ -55,11 +69,50 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  
+  /* Improved typography defaults */
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight font-bold;
+  }
+  
+  h1 {
+    @apply text-3xl sm:text-4xl;
+  }
+  
+  h2 {
+    @apply text-2xl sm:text-3xl;
+  }
+  
+  h3 {
+    @apply text-xl sm:text-2xl;
+  }
+  
+  /* Improved form elements */
+  input, select, textarea {
+    @apply rounded-lg;
   }
 }
 
-/* Анимации для плавного появления */
+/* Mobile-first container */
+@layer components {
+  .container {
+    @apply w-full px-4 mx-auto sm:px-6 md:max-w-3xl lg:max-w-5xl xl:max-w-7xl;
+  }
+  
+  /* Card styles with more breathing room */
+  .card-airy {
+    @apply p-5 sm:p-6 rounded-xl border border-slate-100 bg-white shadow-sm;
+  }
+  
+  /* Mobile-friendly buttons */
+  .btn-mobile {
+    @apply w-full sm:w-auto px-5 py-3 rounded-lg flex items-center justify-center gap-2 text-center;
+  }
+}
+
+/* Animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -75,13 +128,28 @@
   animation: fadeInUp 0.5s ease-out;
 }
 
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.4s ease-out;
+}
+
 /* Стили для чекбоксов */
 .checkbox-custom {
-  @apply relative inline-flex h-5 w-5 items-center justify-center rounded border-2 border-gray-300 bg-white transition-all duration-200;
+  @apply relative inline-flex h-6 w-6 items-center justify-center rounded-full border-2 border-slate-300 bg-white transition-all duration-200;
 }
 
 .checkbox-custom:checked {
-  @apply border-green-500 bg-green-500;
+  @apply border-primary bg-primary;
 }
 
 .checkbox-custom:checked::after {
@@ -94,10 +162,42 @@
   @apply opacity-60 line-through;
 }
 
-/* Адаптивные стили */
-@media (max-width: 640px) {
-  .container {
-    @apply px-4;
+/* Мобильный интерфейс */
+@layer utilities {
+  .mobile-card {
+    @apply w-full rounded-lg shadow-sm overflow-hidden bg-white;
+  }
+  
+  .mobile-card-header {
+    @apply p-4 border-b border-gray-100;
+  }
+  
+  .mobile-card-content {
+    @apply p-4;
+  }
+  
+  .mobile-input {
+    @apply w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none;
+  }
+  
+  .mobile-button {
+    @apply w-full py-3 px-4 rounded-lg font-medium text-center transition-colors;
+  }
+  
+  .mobile-button-primary {
+    @apply bg-primary text-white hover:bg-primary/90;
+  }
+  
+  .mobile-button-outline {
+    @apply border border-gray-200 text-gray-700 hover:bg-gray-50;
+  }
+  
+  .progress-bar {
+    @apply w-full h-2 bg-gray-100 rounded-full overflow-hidden;
+  }
+  
+  .progress-bar-value {
+    @apply h-full bg-primary rounded-full transition-all duration-300;
   }
 }
 

@@ -18,41 +18,43 @@ interface ListItemEntryProps {
 const ListItemEntry: React.FC<ListItemEntryProps> = ({ item, onToggle, onDelete, index }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.3 }}
-      className={`flex items-center space-x-3 p-3 rounded-lg border transition-all duration-200 hover:shadow-md group ${
+      initial={{ opacity: 0, y: 5 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.03, duration: 0.2 }}
+      className={`route-item group ${
         item.purchased
-          ? 'bg-green-50 border-green-200 opacity-75'
-          : 'bg-white border-gray-200 hover:border-gray-300'
+          ? 'opacity-75'
+          : ''
       }`}
     >
-      <Checkbox
-        id={item.id}
-        checked={item.purchased}
-        onCheckedChange={() => onToggle(item.id)}
-        className="flex-shrink-0"
-      />
+      <div
+        className={`route-item-checkbox ${item.purchased ? 'route-item-checked' : ''}`}
+        onClick={() => onToggle(item.id)}
+      >
+        {item.purchased && (
+          <motion.span 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="text-xs"
+          >
+            ✓
+          </motion.span>
+        )}
+      </div>
       <label
-        htmlFor={item.id}
-        className={`flex-1 cursor-pointer text-sm font-medium transition-all duration-200 ${
+        onClick={() => onToggle(item.id)}
+        className={`flex-1 cursor-pointer text-sm transition-all duration-200 ${
           item.purchased
-            ? 'line-through text-gray-500'
-            : 'text-gray-900 hover:text-gray-700'
+            ? 'line-through text-gray-400'
+            : 'text-gray-800'
         }`}
       >
         {item.name}
-      </label>
-      <div className="flex items-center gap-2">
-        {item.purchased && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="text-green-600 text-xs font-semibold bg-green-100 px-2 py-1 rounded-full"
-          >
-            ✓ Куплено
-          </motion.div>
+        {item.quantity && item.quantity !== '1' && (
+          <span className="text-xs text-gray-500 ml-1">×{item.quantity}</span>
         )}
+      </label>
+      <div className="flex items-center">
         {onDelete && (
           <Button
             variant="ghost"
@@ -62,9 +64,9 @@ const ListItemEntry: React.FC<ListItemEntryProps> = ({ item, onToggle, onDelete,
               e.preventDefault();
               onDelete(item.id);
             }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto text-red-500 hover:text-red-700 hover:bg-red-50"
+            className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity py-1 px-2 h-7 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
         )}
       </div>

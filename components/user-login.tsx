@@ -67,36 +67,36 @@ export default function UserLogin({ onUserSelect, isLoading = false }: UserLogin
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <Card className="w-full max-w-md mx-4">
-        <CardHeader className="text-center">
-          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
-            <User className="h-8 w-8 text-blue-600" />
+    <div className="login-screen">
+      <Card className="screen-card w-full max-w-md mx-4 shadow-lg">
+        <CardHeader className="text-center py-6 px-5">
+          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-5">
+            <User className="h-9 w-9 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Добро пожаловать!</CardTitle>
-          <CardDescription>
-            Введите ваш ID пользователя для доступа к спискам покупок
+          <CardTitle className="text-2xl mb-2">Добро пожаловать!</CardTitle>
+          <CardDescription className="text-base text-gray-600">
+            Введите ваш ID для доступа к спискам покупок
           </CardDescription>
         </CardHeader>
         
-        <CardContent className="space-y-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="userId">ID пользователя</Label>
+        <CardContent className="px-5 pb-6 space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="form-input-group">
+              <Label htmlFor="userId" className="form-label">ID пользователя</Label>
               <Input
                 id="userId"
                 type="text"
-                placeholder="например: ivan@example.com или ivan123"
+                placeholder="например: ivan@example.com"
                 value={userId}
                 onChange={(e) => {
                   setUserId(e.target.value);
                   setError('');
                 }}
                 disabled={isLoading}
-                className={error ? 'border-red-500' : ''}
+                className={`form-input ${error ? 'border-red-500 focus:border-red-500' : ''}`}
               />
               {error && (
-                <p className="text-sm text-red-500">{error}</p>
+                <p className="text-sm text-red-500 mt-1">{error}</p>
               )}
               {userId.trim().length > 0 && (
                 <p className="text-xs text-muted-foreground">
@@ -107,52 +107,47 @@ export default function UserLogin({ onUserSelect, isLoading = false }: UserLogin
             
             <Button 
               type="submit" 
-              className="w-full" 
+              className="form-submit mt-6" 
               disabled={isButtonDisabled}
             >
               {isLoading ? (
-                'Загрузка...'
+                <>
+                  <span className="mr-2">Загрузка...</span>
+                  <div className="h-5 w-5 rounded-full border-2 border-current border-t-transparent animate-spin"></div>
+                </>
               ) : (
                 <>
                   Войти
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </>
               )}
             </Button>
           </form>
           
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+          <div className="border-t border-gray-200 mt-6 pt-6">
+            <p className="text-sm text-gray-500 text-center mb-3">Быстрый вход</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                className="mobile-button mobile-button-outline h-12"
+                onClick={() => handleQuickSelect('guest-user')}
+                disabled={isLoading}
+              >
+                Гость
+              </Button>
+              <Button
+                variant="outline"
+                className="mobile-button mobile-button-outline h-12 bg-blue-50 border-blue-100 text-blue-700"
+                onClick={() => handleQuickSelect('demo-user')}
+                disabled={isLoading}
+              >
+                Демо
+              </Button>
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                или быстрый выбор
-              </span>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant="outline"
-              onClick={() => handleQuickSelect('guest-user')}
-              disabled={isLoading}
-              className="text-sm"
-            >
-              Гость
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleQuickSelect('demo-user')}
-              disabled={isLoading}
-              className="text-sm"
-            >
-              Демо
-            </Button>
           </div>
           
           <div className="text-center">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-500 mt-4">
               Ваши списки покупок будут сохранены под этим ID
             </p>
           </div>

@@ -54,7 +54,7 @@ const MobileFilter: React.FC<FilterProps> = ({ onApplyFilters, onClose }) => {
     <div className="space-y-6">
       {/* Sort options */}
       <div className="space-y-3">
-        <h4 className="font-medium text-gray-800">Сортировка</h4>
+        <h4 className="font-medium text-gray-800 dark:text-gray-200">Сортировка</h4>
         <RadioGroup value={sortOption} onValueChange={setSortOption}>
           <div className="flex items-center space-x-2 py-2">
             <RadioGroupItem value="category" id="sort-category" />
@@ -73,7 +73,7 @@ const MobileFilter: React.FC<FilterProps> = ({ onApplyFilters, onClose }) => {
       
       {/* Display options */}
       <div className="space-y-3">
-        <h4 className="font-medium text-gray-800">Отображение</h4>
+        <h4 className="font-medium text-gray-800 dark:text-gray-200">Отображение</h4>
         <div className="flex items-center space-x-2 py-2">
           <Checkbox 
             id="show-completed" 
@@ -86,7 +86,7 @@ const MobileFilter: React.FC<FilterProps> = ({ onApplyFilters, onClose }) => {
       
       {/* Categories */}
       <div className="space-y-3">
-        <h4 className="font-medium text-gray-800">Категории</h4>
+        <h4 className="font-medium text-gray-800 dark:text-gray-200">Категории</h4>
         <div className="space-y-1 max-h-[200px] overflow-auto py-1">
           {categories.map(category => (
             <div key={category} className="flex items-center space-x-2 py-2">
@@ -104,8 +104,8 @@ const MobileFilter: React.FC<FilterProps> = ({ onApplyFilters, onClose }) => {
       {/* Price range */}
       <div className="space-y-4">
         <div className="flex justify-between">
-          <h4 className="font-medium text-gray-800">Диапазон цен</h4>
-          <span className="text-sm text-gray-600">
+          <h4 className="font-medium text-gray-800 dark:text-gray-200">Диапазон цен</h4>
+          <span className="text-sm text-gray-600 dark:text-gray-400">
             {priceRange[0]}₽ - {priceRange[1]}₽
           </span>
         </div>

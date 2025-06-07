@@ -74,8 +74,8 @@ const CategoryGroup: React.FC<CategoryGroupProps> = ({
               <IconComponent className={`${isTablet ? 'h-6 w-6' : 'h-5 w-5'} text-primary`} />
             </div>
             <div>
-              <h3 className={`font-medium text-gray-800 ${isTablet ? 'text-lg' : ''}`}>{categoryName}</h3>
-              <div className={`flex items-center gap-1 ${isTablet ? 'text-sm' : 'text-xs'} text-gray-500`}>
+              <h3 className={`font-medium text-gray-800 dark:text-gray-200 ${isTablet ? 'text-lg' : ''}`}>{categoryName}</h3>
+              <div className={`flex items-center gap-1 ${isTablet ? 'text-sm' : 'text-xs'} text-gray-500 dark:text-gray-400`}>
                 <span className="font-medium text-primary">{completedCount}/{totalCount}</span>
                 <span>товаров</span>
                 {completionPercentage === 100 && (
@@ -103,7 +103,7 @@ const CategoryGroup: React.FC<CategoryGroupProps> = ({
                 e.stopPropagation();
                 toggleExpand();
               }}
-              className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 text-gray-600"
+              className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
             >
               {isExpanded ? (
                 <ChevronUp className="h-3.5 w-3.5" />

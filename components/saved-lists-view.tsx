@@ -151,7 +151,7 @@ export default function SavedListsView({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className={`font-bold text-gray-900 flex items-center ${
+          <h1 className={`font-bold text-gray-900 dark:text-white flex items-center ${
             isDesktop ? 'desktop-heading' : 'text-2xl'
           }`}>
             <User className={`mr-2 text-blue-600 ${isDesktop ? 'h-8 w-8' : 'h-6 w-6'}`} />

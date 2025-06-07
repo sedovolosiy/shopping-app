@@ -263,7 +263,7 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
           {/* Fixed footer with actions */}
           <div className="route-footer">
             <div className="flex items-center">
-              <div className="flex items-center gap-1 text-sm text-gray-700">
+              <div className="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
                 <Route className="h-4 w-4 text-primary" />
                 <span>Оптимизировано для {storeName}</span>
               </div>

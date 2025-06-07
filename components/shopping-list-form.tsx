@@ -155,7 +155,7 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
               <div className="desktop-card-section">
                 <h3 className="desktop-section-title">Настройки оптимизации</h3>
                 <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                  <label htmlFor="ai-toggle-form" className="desktop-text font-medium text-gray-700">
+                  <label htmlFor="ai-toggle-form" className="desktop-text font-medium text-gray-700 dark:text-gray-300">
                     Использовать AI для оптимизации:
                   </label>
                   <div className="flex items-center">
@@ -350,7 +350,7 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
           <>
             {/* AI toggle inside the form */}
             <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-              <label htmlFor="ai-toggle-form" className="text-sm font-medium text-gray-700">Использовать AI для оптимизации:</label>
+              <label htmlFor="ai-toggle-form" className="text-sm font-medium text-gray-700 dark:text-gray-300">Использовать AI для оптимизации:</label>
               <div className="flex items-center">
                 <div 
                   className={`mobile-toggle ${useAI ? 'mobile-toggle-on' : 'mobile-toggle-off'}`} 
@@ -419,7 +419,7 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
               </Select>
               
               <div className="mt-4 pt-4 border-t border-gray-100">
-                <Label htmlFor="new-store-name" className="text-sm font-medium text-gray-600 flex items-center gap-1">
+                <Label htmlFor="new-store-name" className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-1">
                     <span className="inline-block w-1.5 h-1.5 bg-primary rounded-full"></span>
                     Добавить новый магазин:
                 </Label>
@@ -506,7 +506,7 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
                 <Button
                   onClick={onReset}
                   variant="outline"
-                  className="w-full h-12 mt-3 text-base font-medium border-gray-300 text-gray-600 hover:bg-gray-50"
+                  className="w-full h-12 mt-3 text-base font-medium border-gray-300 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Новый список
                 </Button>

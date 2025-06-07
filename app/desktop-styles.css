@@ -362,11 +362,20 @@
     background: #e5e7eb;
   }
   
-  /* Desktop typography */
-  .desktop-heading {
-    font-size: 1.5rem;
-    font-weight: 700;
-    line-height: 1.2;
+  /* Dark mode support for secondary buttons */
+  :is(.dark) .desktop-button-secondary {
+    background: #374151;
+    color: #e5e7eb;
+    border: 1px solid #4b5563;
+  }
+  
+  :is(.dark) .desktop-button-secondary:hover {
+    background: #4b5563;
+  }
+  
+  /* Dark mode support for typography */
+  :is(.dark) .desktop-heading {
+    color: #f9fafb;
   }
   
   .desktop-subheading {
@@ -375,14 +384,29 @@
     line-height: 1.3;
   }
   
+  /* Dark mode support for subheadings */
+  :is(.dark) .desktop-subheading {
+    color: #f3f4f6;
+  }
+  
   .desktop-text {
     font-size: 1rem;
     line-height: 1.5;
   }
   
+  /* Dark mode support for text */
+  :is(.dark) .desktop-text {
+    color: #e5e7eb;
+  }
+  
   .desktop-small-text {
     font-size: 0.875rem;
     line-height: 1.4;
+  }
+  
+  /* Dark mode support for small text */
+  :is(.dark) .desktop-small-text {
+    color: #d1d5db;
   }
   
   .desktop-helper-text {
@@ -391,9 +415,19 @@
     margin-top: 0.25rem;
   }
   
+  /* Dark mode support for helper text */
+  :is(.dark) .desktop-helper-text {
+    color: #9ca3af;
+  }
+  
   .desktop-error-text {
     font-size: 0.875rem;
     color: #dc2626;
+  }
+  
+  /* Dark mode support for error text */
+  :is(.dark) .desktop-error-text {
+    color: #f87171;
   }
   
   /* Desktop form components */
@@ -501,6 +535,15 @@
   
   .desktop-button-ghost:hover {
     background: #eff6ff;
+  }
+  
+  /* Dark mode support for ghost buttons */
+  :is(.dark) .desktop-button-ghost {
+    color: #60a5fa;
+  }
+  
+  :is(.dark) .desktop-button-ghost:hover {
+    background: #1e3a8a20;
   }
   
   /* General desktop button styling */

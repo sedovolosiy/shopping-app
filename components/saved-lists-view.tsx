@@ -55,8 +55,10 @@ export default function SavedListsView({
   const [listToDelete, setListToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [storesMap, setStoresMap] = useState<Record<string, string>>({});
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     async function fetchStores() {
       try {
         const res = await fetch('/api/stores');
@@ -104,6 +106,8 @@ export default function SavedListsView({
 
   // Получение имени магазина по storeId из storesMap
   const getStoreDisplayName = (storeId: string) => {
+    // На сервере или до загрузки данных возвращаем значение по умолчанию
+    if (!isClient) return 'Магазин';
     return storesMap[storeId] || 'Магазин';
   };
 
@@ -149,7 +153,7 @@ export default function SavedListsView({
       </div>
 
       {/* Store Filter */}
-      {uniqueStores.length > 1 && (
+      {isClient && uniqueStores.length > 1 && (
         <div className="flex flex-wrap gap-2">
           <Button
             variant={selectedStore === 'all' ? 'default' : 'outline'}
@@ -199,9 +203,11 @@ export default function SavedListsView({
                   <div className="flex flex-col">
                     <CardTitle className="text-xl font-semibold flex items-center gap-2">
                       {list.name}
-                      <span className="text-base font-normal text-blue-600 bg-blue-50 rounded px-2 py-0.5 ml-2">
-                        {getStoreDisplayName(list.storeId)}
-                      </span>
+                      {isClient && (
+                        <span className="text-base font-normal text-blue-600 bg-blue-50 rounded px-2 py-0.5 ml-2">
+                          {getStoreDisplayName(list.storeId)}
+                        </span>
+                      )}
                     </CardTitle>
                   </div>
                   <div className="flex space-x-2">
@@ -259,24 +265,13 @@ export default function SavedListsView({
 
                   <div className="flex items-center text-sm text-muted-foreground mt-2">
                     <ShoppingCart className="h-4 w-4 mr-1" />
-                    {getStoreDisplayName(list.storeId)}
+                    {isClient ? getStoreDisplayName(list.storeId) : 'Магазин'}
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
           ))}
         </AnimatePresence>
-        
-        {/* Create New List Card */}
-        <Card className="border-dashed border-2 hover:border-blue-300 transition-colors cursor-pointer" onClick={onCreateNew}>
-          <CardContent className="flex flex-col items-center justify-center py-8">
-            <Plus className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold text-muted-foreground">Создать новый список</h3>
-            <p className="text-sm text-muted-foreground text-center mt-2">
-              Начните с создания нового списка покупок
-            </p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Delete Confirmation Dialog */}

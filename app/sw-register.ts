@@ -16,19 +16,18 @@ export async function registerServiceWorker() {
       // Check if service worker was successfully registered
       if (registration.active) {
         console.log('Service worker is active');
+        // Set up background sync only when service worker is active
+        await setupBackgroundSync(registration);
       } else {
-        console.log('Service worker registered in state:', registration.scope);
-      }
-      
-      // Set up background sync
-      // Check for background sync support
-      if ('sync' in registration) {
-        try {
-          // TypeScript doesn't know about the sync API, so we need to use a type assertion
-          await (registration as any).sync.register('sync-shopping-lists');
-          console.log('Background sync registered');
-        } catch (error) {
-          console.error('Background sync registration failed:', error);
+        console.log('Service worker registered in state:', registration.installing ? 'installing' : 'waiting');
+        
+        // Wait for the service worker to become active before registering sync
+        if (registration.installing) {
+          registration.installing.addEventListener('statechange', (event) => {
+            if ((event.target as ServiceWorker).state === 'activated') {
+              setupBackgroundSync(registration);
+            }
+          });
         }
       }
       
@@ -48,7 +47,43 @@ export async function registerServiceWorker() {
       return registration;
     } catch (error) {
       console.error('Service worker registration failed:', error);
+      throw error;
     }
+  }
+  throw new Error('Service workers are not supported in this browser');
+}
+
+// Separate function to setup background sync
+async function setupBackgroundSync(registration: ServiceWorkerRegistration) {
+  try {
+    // Check if SyncManager is available in the browser
+    // @ts-ignore: TypeScript doesn't know about the SyncManager interface
+    if (typeof window !== 'undefined' && 'SyncManager' in window) {
+      // Make sure the sync API is available on the registration
+      // @ts-ignore: TypeScript doesn't know about the sync API
+      if (registration.sync) {
+        // Wait a moment to ensure service worker is fully activated
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        try {
+          // TypeScript doesn't know about the sync API, so we need to use a type assertion
+          // Use a plain try/catch inside to avoid failing the entire setup if sync fails
+          // @ts-ignore: TypeScript doesn't know about the sync API
+          await registration.sync.register('sync-shopping-lists');
+          console.log('Background sync registered successfully');
+        } catch (syncError) {
+          console.error('Background sync registration failed:', syncError);
+          console.log('Falling back to regular online operations');
+        }
+      } else {
+        console.log('Sync API not available on service worker registration');
+      }
+    } else {
+      console.log('SyncManager not supported in this browser, using fallback');
+    }
+  } catch (error) {
+    // Catch any other unexpected errors in the sync setup process
+    console.error('Error in setupBackgroundSync:', error);
   }
 }
 

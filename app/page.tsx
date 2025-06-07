@@ -780,16 +780,16 @@ export default function HomePage() {
           title="Настройки"
           position="right"
         >
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-gray-700 dark:text-gray-300">Тёмная тема</span>
+              <span className="text-gray-700 dark:text-gray-300 text-sm">Тёмная тема</span>
               <button 
                 onClick={toggleTheme}
-                className="p-2 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
+                className="p-2 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
               >
                 {theme === 'dark' ? 
-                  <Sun className="h-5 w-5 text-yellow-400" /> : 
-                  <Moon className="h-5 w-5 text-gray-700" />
+                  <Sun className="h-4 w-4 text-yellow-400" /> : 
+                  <Moon className="h-4 w-4 text-gray-700 dark:text-gray-300" />
                 }
               </button>
             </div>
@@ -798,16 +798,18 @@ export default function HomePage() {
             
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
               {currentUserId && (
-                <button 
-                  onClick={() => {
-                    setCurrentUserId('');
-                    setAppState(AppState.LOGIN);
-                    setIsSettingsDrawerOpen(false);
-                  }}
-                  className="text-red-500 hover:text-red-600 dark:hover:text-red-400 text-sm"
-                >
-                  Выйти
-                </button>
+                <div className="w-full">
+                  <button 
+                    onClick={() => {
+                      setCurrentUserId('');
+                      setAppState(AppState.LOGIN);
+                      setIsSettingsDrawerOpen(false);
+                    }}
+                    className="w-full px-3 py-2.5 text-red-500 hover:text-red-600 dark:hover:text-red-400 text-sm font-medium bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                  >
+                    Выйти из аккаунта
+                  </button>
+                </div>
               )}
             </div>
           </div>

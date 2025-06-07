@@ -34,7 +34,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({
   // Classes based on position
   const positionClasses = {
     bottom: "fixed bottom-0 left-0 right-0 rounded-t-2xl max-h-[85vh] overflow-auto",
-    right: "fixed top-0 right-0 bottom-0 max-w-[85vw] w-full overflow-auto"
+    right: "fixed top-0 right-0 bottom-0 w-full sm:max-w-[95vw] sm:w-80 overflow-auto"
   };
   
   return (
@@ -53,7 +53,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({
           
           {/* Drawer */}
           <motion.div
-            className={`${positionClasses[position]} bg-white shadow-lg z-50`}
+            className={`${positionClasses[position]} bg-white dark:bg-gray-900 shadow-lg z-50`}
             initial="hidden"
             animate="visible"
             exit="hidden"
@@ -66,14 +66,14 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({
           >
             {/* Handle for bottom drawer */}
             {position === "bottom" && (
-              <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto my-3" />
+              <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto my-3" />
             )}
             
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-100">
-              <h3 className="text-lg font-medium">{title}</h3>
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{title}</h3>
               <button
-                className="p-1 rounded-full hover:bg-gray-100"
+                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
                 onClick={onClose}
                 aria-label="Close"
               >
@@ -82,7 +82,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({
             </div>
             
             {/* Content */}
-            <div className="p-4">
+            <div className="p-4 pb-safe">
               {children}
             </div>
           </motion.div>

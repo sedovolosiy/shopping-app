@@ -7,6 +7,7 @@ import FullPageLoader from "@/components/full-page-loader";
 import { Button } from "@/components/ui/button";
 import { ListPlus, ArrowLeft, X } from "lucide-react";
 import { useSwipeable } from "react-swipeable"; // We'll need to install this package
+import { useDevice } from "@/components/device-detector";
 
 // Types for client props
 interface MainClientContentProps {
@@ -34,6 +35,7 @@ const MainClientContent: React.FC<MainClientContentProps> = ({
 }) => {
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const { isDesktop } = useDevice();
 
   // Handle pull-to-refresh behavior
   const handlePullToRefresh = () => {
@@ -44,8 +46,8 @@ const MainClientContent: React.FC<MainClientContentProps> = ({
     }, 1500);
   };
 
-  // Configure swipe handlers for mobile interactions
-  const swipeHandlers = useSwipeable({
+  // Configure swipe handlers for mobile interactions - only for mobile/tablet
+  const swipeHandlers = !isDesktop ? useSwipeable({
     onSwipedDown: (eventData: any) => {
       // If we're at the top of the page and user swipes down, trigger refresh
       if (window.scrollY < 10) {
@@ -59,9 +61,8 @@ const MainClientContent: React.FC<MainClientContentProps> = ({
       }
     },
     delta: 50, // min distance before swipe is recognized
-    preventDefaultTouchmoveEvent: false,
     trackTouch: true,
-  });
+  }) : {};
 
   // Screen transition variants for smoother mobile experience
   const pageTransition = {
@@ -78,22 +79,24 @@ const MainClientContent: React.FC<MainClientContentProps> = ({
 
   return (
     <div {...swipeHandlers}>
-      {/* Pull-to-refresh indicator */}
-      <AnimatePresence>
-        {refreshing && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 60, opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="flex items-center justify-center text-primary bg-gray-50 w-full overflow-hidden"
-          >
-            <div className="flex flex-col items-center">
-              <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mb-1"></div>
-              <span className="text-xs">Обновление...</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Pull-to-refresh indicator - ONLY show on mobile/tablet */}
+      {!isDesktop && (
+        <AnimatePresence>
+          {refreshing && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 60, opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="flex items-center justify-center text-primary bg-gray-50 w-full overflow-hidden"
+            >
+              <div className="flex flex-col items-center">
+                <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mb-1"></div>
+                <span className="text-xs">Обновление...</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
 
       {/* Full-page loader */}
       <AnimatePresence>
@@ -113,9 +116,9 @@ const MainClientContent: React.FC<MainClientContentProps> = ({
         )}
       </AnimatePresence>
 
-      <main className="container mx-auto px-4 py-6 space-y-6 relative min-h-[calc(100vh-4rem)]">
-        {/* Mobile app header with back button for nested views */}
-        {appState !== "login" && (
+      <main className={`${!isDesktop ? 'container mx-auto px-4 py-6 space-y-6' : ''} relative min-h-[calc(100vh-4rem)]`}>
+        {/* Mobile app header with back button for nested views - ONLY show on mobile/tablet */}
+        {!isDesktop && appState !== "login" && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -203,39 +206,43 @@ const MainClientContent: React.FC<MainClientContentProps> = ({
           )}
         </AnimatePresence>
 
-        {/* Bottom sheet for mobile controls */}
-        <AnimatePresence>
-          {isBottomSheetOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/30 z-40"
-              onClick={() => setIsBottomSheetOpen(false)}
-            />
-          )}
-        </AnimatePresence>
+        {/* Bottom sheet for mobile controls - ONLY show on mobile/tablet */}
+        {!isDesktop && (
+          <>
+            <AnimatePresence>
+              {isBottomSheetOpen && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 bg-black/30 z-40"
+                  onClick={() => setIsBottomSheetOpen(false)}
+                />
+              )}
+            </AnimatePresence>
 
-        <motion.div
-          className={`bottom-sheet ${
-            isBottomSheetOpen ? "bottom-sheet-visible" : "bottom-sheet-hidden"
-          }`}
-          animate={{ y: isBottomSheetOpen ? 0 : "100%" }}
-          transition={{ type: "spring", damping: 20, stiffness: 300 }}
-        >
-          <div className="bottom-sheet-handle" />
-          <div className="p-5">
-            <h3 className="text-lg font-medium mb-4">Фильтры и настройки</h3>
-            {/* Filter and settings controls would go here */}
-            <Button
-              variant="outline"
-              className="w-full mt-4"
-              onClick={() => setIsBottomSheetOpen(false)}
+            <motion.div
+              className={`bottom-sheet ${
+                isBottomSheetOpen ? "bottom-sheet-visible" : "bottom-sheet-hidden"
+              }`}
+              animate={{ y: isBottomSheetOpen ? 0 : "100%" }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
             >
-              Закрыть
-            </Button>
-          </div>
-        </motion.div>
+              <div className="bottom-sheet-handle" />
+              <div className="p-5">
+                <h3 className="text-lg font-medium mb-4">Фильтры и настройки</h3>
+                {/* Filter and settings controls would go here */}
+                <Button
+                  variant="outline"
+                  className="w-full mt-4"
+                  onClick={() => setIsBottomSheetOpen(false)}
+                >
+                  Закрыть
+                </Button>
+              </div>
+            </motion.div>
+          </>
+        )}
       </main>
     </div>
   );

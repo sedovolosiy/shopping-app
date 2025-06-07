@@ -17,6 +17,8 @@ import { useTheme } from '@/components/theme-provider';
 import { Moon, Sun } from 'lucide-react';
 import DeviceProvider, { useDevice, DeviceRender } from '@/components/device-detector';
 import TabletLayout from '@/components/tablet-layout';
+import DesktopLayout from '@/components/desktop-layout';
+import DesktopMainContent from '@/components/desktop-main-content';
 
 // Define the Store interface expected by ShoppingListForm and for availableStores
 interface Store {
@@ -716,6 +718,30 @@ export default function HomePage() {
                 optimizedItems={optimizedItems}
               />
             </TabletLayout>
+          }
+          desktop={
+            <DesktopLayout
+              activeTab={activeTab}
+              onChangeTab={handleTabChange}
+              onOpenSettings={() => setIsSettingsDrawerOpen(true)}
+              currentUserId={currentUserId}
+              onLogout={() => {
+                setCurrentUserId('');
+                setAppState(AppState.LOGIN);
+              }}
+            >
+              <DesktopMainContent
+                appState={appState}
+                isOptimized={isOptimized}
+                isLoading={isLoading}
+                isAIProcessed={isAIProcessed}
+                error={error}
+                renderCurrentView={renderCurrentView}
+                handleReset={handleReset}
+                showForm={showForm}
+                optimizedItems={optimizedItems}
+              />
+            </DesktopLayout>
           }
           default={
             <div className="min-h-screen">

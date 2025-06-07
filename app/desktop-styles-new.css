@@ -1,0 +1,88 @@
+/* Desktop-specific styles for Shopping Optimizer app */
+/* Only applies to desktop screens (1025px+) and doesn't affect mobile/tablet */
+
+@media (min-width: 1025px) {
+  /* Desktop layout structure */
+  .desktop-force {
+    display: flex !important;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  /* Hide mobile/tablet layouts on desktop */
+  .mobile-force, .tablet-force {
+    display: none !important;
+  }
+  
+  /* Desktop sidebar */
+  .desktop-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: white;
+    border-right: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  
+  /* Desktop main content area */
+  .desktop-main-content-panel {
+    flex: 1;
+    overflow-y: auto;
+    background: #f8fafc;
+    padding: 1.5rem;
+  }
+  
+  /* Desktop form container - centered and constrained */
+  .desktop-form-container {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Desktop navigation buttons */
+  .desktop-nav-button {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: left;
+    margin-bottom: 0.125rem;
+  }
+  
+  .desktop-nav-button:hover {
+    background: #f3f4f6;
+    color: #374151;
+  }
+  
+  .desktop-nav-button-active {
+    background: #3b82f6;
+    color: white;
+  }
+  
+  .desktop-nav-button-active:hover {
+    background: #2563eb;
+  }
+  
+  /* Desktop content panels for lists */
+  .desktop-content-panel {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+  }
+}

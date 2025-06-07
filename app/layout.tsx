@@ -7,6 +7,7 @@ import DeviceProvider from '@/components/device-detector';
 import './globals.css'
 import './mobile-styles.css'
 import './tablet-styles.css'
+import './desktop-styles.css'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 

@@ -60,6 +60,21 @@ export const DeviceProvider: React.FC<DeviceProviderProps> = ({ children }) => {
       const isPortrait = window.innerHeight > window.innerWidth;
       const orientation: OrientationType = isPortrait ? "portrait" : "landscape";
       
+      // Добавляем классы к body для CSS
+      if (typeof document !== 'undefined') {
+        // Удаляем все классы устройств
+        document.body.classList.remove('mobile-device', 'tablet-device', 'desktop-device');
+        document.documentElement.classList.remove('mobile-device', 'tablet-device', 'desktop-device');
+        
+        // Добавляем соответствующий класс
+        document.body.classList.add(`${deviceType}-device`);
+        document.documentElement.classList.add(`${deviceType}-device`);
+        
+        // Добавляем класс ориентации
+        document.body.classList.remove('portrait-orientation', 'landscape-orientation');
+        document.body.classList.add(`${orientation}-orientation`);
+      }
+      
       // Обновляем состояние
       setDeviceInfo({
         deviceType,

@@ -31,12 +31,10 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
   onToggleForm
 }) => {
   const [expandAll, setExpandAll] = useState<boolean>(true);
-  // Добавляем состояние для отслеживания развернутых/свёрнутых категорий
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [expandedCategories, setExpandedCategories] = useState<{[key: string]: boolean}>({});
   
-  // Определяем тип устройства для адаптивного интерфейса
-  const { isTablet, orientation } = useDevice();
-  const isTabletLandscape = isTablet && orientation === 'landscape';
+  // Определяем тип устройства
+  const { isTablet, isDesktop } = useDevice();
   
   const safeItems = Array.isArray(items) ? items : [];
   const groupedItems: Record<string, ShoppingItem[]> = groupItemsByCategory(safeItems) || {};
@@ -76,96 +74,139 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
   }
 
   // Определяем классы для адаптивного интерфейса
-  const containerClasses = isTablet 
-    ? "route-screen w-full max-w-3xl mx-auto tablet-text-lg tablet-form-container"
-    : "route-screen w-full max-w-md mx-auto";
+  const containerClasses = isDesktop 
+    ? "w-full desktop-content-panel"
+    : isTablet 
+      ? "route-screen w-full max-w-3xl mx-auto tablet-text-lg tablet-form-container"
+      : "route-screen w-full max-w-md mx-auto";
     
   return (
     <div className={containerClasses}>
-      {/* Progress bar at the top */}
-      <div className="route-progress">
-        <div
-          className="route-progress-value"
-          style={{ width: `${completionPercentage}%` }}
-        />
-      </div>
-      
-      {/* Header with controls */}
-      <div className="route-header">
-        <div className="flex items-center gap-2">
-          <Route className="h-5 w-5 text-primary" />
-          <h2 className="text-base font-medium">Маршрут <span className="font-normal text-sm">• {storeName}</span></h2>
-          {isAIProcessed && <AITag isActive={true} />}
-        </div>
-        
-        <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleExpandAll}
-            className="h-8 w-8 text-gray-600"
-            title={expandAll ? 'Свернуть все' : 'Развернуть все'}
-          >
-            <ChevronsUpDown className="h-4 w-4" />
-          </Button>
-          {onToggleForm && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onToggleForm}
-              className="h-8 w-8 text-gray-600"
-              title="Редактировать список"
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onReset}
-            className="h-8 w-8 text-gray-600"
-            title="Новый список"
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      
-      {/* Progress indicator */}
-      <Card className="shadow-md bg-gradient-to-r from-primary to-accent text-white mb-4">
-        <CardHeader className="py-3 px-4">
-          <CardDescription className="text-white/80 text-xs">
-            Следуйте порядку категорий для оптимального маршрута
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="py-3 px-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              {completionPercentage === 100 ? (
-                <CheckCircle2 className="h-5 w-5 text-green-300" />
-              ) : (
-                <Circle className="h-5 w-5 text-white/70" />
-              )}
-              <span className="text-base">
-                <span className="font-medium">{completedItems}/{totalItems}</span> товаров
-              </span>
-            </div>
-            <span className="text-xl font-bold">
-              {Math.round(completionPercentage)}%
-            </span>
-          </div>
-          
-          <div className="w-full h-2.5 bg-white/20 rounded-full overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${completionPercentage}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="h-full bg-green-400 rounded-full"
+      {!isDesktop && (
+        <>
+          {/* Progress bar at the top - только для мобильных и планшетов */}
+          <div className="route-progress">
+            <div
+              className="route-progress-value"
+              style={{ width: `${completionPercentage}%` }}
             />
           </div>
-        </CardContent>
-      </Card>
+          
+          {/* Header with controls - только для мобильных и планшетов */}
+          <div className="route-header">
+            <div className="flex items-center gap-2">
+              <Route className="h-5 w-5 text-primary" />
+              <h1 className="text-lg font-medium">Маршрут по магазину</h1>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setExpandAll(!expandAll)}
+                className="text-sm p-2"
+                title={expandAll ? "Свернуть все" : "Развернуть все"}
+              >
+                <ChevronsUpDown className="h-4 w-4" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onReset}
+                className="text-sm p-2"
+                title="Новый список"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {isDesktop && (
+        // Desktop header
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="desktop-heading flex items-center gap-3">
+              <Route className="h-8 w-8 text-primary" />
+              Оптимизированный маршрут
+            </h1>
+            <p className="desktop-text text-muted-foreground">
+              Оптимальный маршрут для планировки {storeName}
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setExpandAll(!expandAll)}
+              className="desktop-button"
+            >
+              <ChevronsUpDown className="h-5 w-5 mr-2" />
+              {expandAll ? "Свернуть все" : "Развернуть все"}
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={onReset}
+              className="desktop-button"
+            >
+              <RotateCcw className="h-5 w-5 mr-2" />
+              Новый список
+            </Button>
+            
+            {onToggleForm && (
+              <Button
+                variant="secondary"
+                onClick={onToggleForm}
+                className="desktop-button"
+              >
+                <Edit className="h-5 w-5 mr-2" />
+                Изменить список
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* Progress indicator */}
+      {!isDesktop && (
+        <Card className="shadow-md bg-gradient-to-r from-primary to-accent text-white mb-4">
+          <CardHeader className="py-3 px-4">
+            <CardDescription className="text-white/80 text-xs">
+              Следуйте порядку категорий для оптимального маршрута
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="py-3 px-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                {completionPercentage === 100 ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-300" />
+                ) : (
+                  <Circle className="h-5 w-5 text-white/70" />
+                )}
+                <span className="text-base">
+                  <span className="font-medium">{completedItems}/{totalItems}</span> товаров
+                </span>
+              </div>
+              <span className="text-xl font-bold">
+                {Math.round(completionPercentage)}%
+              </span>
+            </div>
+            
+            <div className="w-full h-2.5 bg-white/20 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${completionPercentage}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="h-full bg-green-400 rounded-full"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
       
       {/* Congratulations card when completed */}
       {completionPercentage === 100 && (
@@ -197,7 +238,7 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
       )}
 
       {/* Список категорий */}
-      <div className="space-y-3 mb-20">
+      <div className={`space-y-3 ${isDesktop ? 'desktop-scroll-area' : 'mb-20'}`}>
         {sortedCategories.map((categoryName, index) => (
           <CategoryGroup
             key={categoryName}
@@ -213,30 +254,34 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
       </div>
 
       {/* Информация и подсказки внизу */}
-      <div className="text-center text-xs text-gray-500 mb-4">
-        <p>Оптимальный маршрут для планировки {storeName}</p>
-      </div>
-      
-      {/* Fixed footer with actions */}
-      <div className="route-footer">
-        <div className="flex items-center">
-          <div className="flex items-center gap-1 text-sm text-gray-700">
-            <Route className="h-4 w-4 text-primary" />
-            <span>Оптимизировано для {storeName}</span>
+      {!isDesktop && (
+        <>
+          <div className="text-center text-xs text-gray-500 mb-4">
+            <p>Оптимальный маршрут для планировки {storeName}</p>
           </div>
-        </div>
-        {onToggleForm && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onToggleForm}
-            className="text-sm bg-blue-50 border-blue-100 text-blue-700 hover:bg-blue-100"
-          >
-            <Edit className="h-3.5 w-3.5 mr-1.5" />
-            Изменить список
-          </Button>
-        )}
-      </div>
+          
+          {/* Fixed footer with actions */}
+          <div className="route-footer">
+            <div className="flex items-center">
+              <div className="flex items-center gap-1 text-sm text-gray-700">
+                <Route className="h-4 w-4 text-primary" />
+                <span>Оптимизировано для {storeName}</span>
+              </div>
+            </div>
+            {onToggleForm && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onToggleForm}
+                className="text-sm bg-blue-50 border-blue-100 text-blue-700 hover:bg-blue-100"
+              >
+                <Edit className="h-3.5 w-3.5 mr-1.5" />
+                Изменить список
+              </Button>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };

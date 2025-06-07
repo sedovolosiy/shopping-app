@@ -68,13 +68,13 @@ export default function UserLogin({ onUserSelect, isLoading = false }: UserLogin
 
   return (
     <div className="login-screen">
-      <Card className="screen-card w-full max-w-md mx-4 shadow-lg">
+      <Card className="screen-card w-full max-w-md mx-4 shadow-lg dark:bg-gray-800 dark:border-gray-700">
         <CardHeader className="text-center py-6 px-5">
-          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-5">
+          <div className="w-20 h-20 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center mx-auto mb-5">
             <User className="h-9 w-9 text-primary" />
           </div>
-          <CardTitle className="text-2xl mb-2">Добро пожаловать!</CardTitle>
-          <CardDescription className="text-base text-gray-600">
+          <CardTitle className="text-2xl mb-2 dark:text-white">Добро пожаловать!</CardTitle>
+          <CardDescription className="text-base text-gray-600 dark:text-gray-300">
             Введите ваш ID для доступа к спискам покупок
           </CardDescription>
         </CardHeader>
@@ -93,7 +93,7 @@ export default function UserLogin({ onUserSelect, isLoading = false }: UserLogin
                   setError('');
                 }}
                 disabled={isLoading}
-                className={`form-input ${error ? 'border-red-500 focus:border-red-500' : ''}`}
+                className={`form-input ${error ? 'border-red-500 focus:border-red-500' : ''} dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400`}
               />
               {error && (
                 <p className="text-sm text-red-500 mt-1">{error}</p>
@@ -124,8 +124,8 @@ export default function UserLogin({ onUserSelect, isLoading = false }: UserLogin
             </Button>
           </form>
           
-          <div className="border-t border-gray-200 mt-6 pt-6">
-            <p className="text-sm text-gray-500 text-center mb-3">Быстрый вход</p>
+          <div className="border-t border-gray-200 dark:border-gray-600 mt-6 pt-6">
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-3">Быстрый вход</p>
             <div className="grid grid-cols-2 gap-3">
               <Button
                 variant="outline"

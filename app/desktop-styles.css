@@ -31,12 +31,23 @@
     overflow-y: auto;
   }
   
+  /* Dark mode support for sidebar */
+  :is(.dark) .desktop-sidebar {
+    background: #1f2937;
+    border-right: 1px solid #374151;
+  }
+  
   /* Desktop main content area */
   .desktop-main-content-panel {
     flex: 1;
     overflow-y: auto;
     background: #f8fafc;
     padding: 1.5rem;
+  }
+  
+  /* Dark mode support for main content */
+  :is(.dark) .desktop-main-content-panel {
+    background: #111827;
   }
   
   /* Desktop form container - centered and constrained */
@@ -50,6 +61,12 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     height: fit-content;
     min-height: calc(100vh - 6rem);
+  }
+  
+  /* Dark mode support for form container */
+  :is(.dark) .desktop-form-container {
+    background: #1f2937;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   }
   
   /* Desktop main wrapper - minimal padding */
@@ -92,6 +109,13 @@
     border: 1px solid #e5e7eb;
   }
   
+  /* Dark mode support for form clean */
+  :is(.dark) .desktop-form-clean {
+    background: #1f2937;
+    border: 1px solid #374151;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  
   /* Desktop navigation buttons */
   .desktop-nav-button {
     width: 100%;
@@ -125,6 +149,16 @@
     background: #2563eb;
   }
   
+  /* Dark mode support for nav buttons */
+  :is(.dark) .desktop-nav-button {
+    color: #9ca3af;
+  }
+  
+  :is(.dark) .desktop-nav-button:hover {
+    background: #374151;
+    color: #d1d5db;
+  }
+  
   /* Desktop content panels for lists */
   .desktop-content-panel {
     background: white;
@@ -132,6 +166,12 @@
     padding: 1.5rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     height: fit-content;
+  }
+  
+  /* Dark mode support for content panels */
+  :is(.dark) .desktop-content-panel {
+    background: #1f2937;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   }
   
   /* Desktop container for content */
@@ -162,6 +202,12 @@
     top: 1.5rem;
   }
   
+  /* Dark mode support for categories panel */
+  :is(.dark) .desktop-categories-panel {
+    background: #1f2937;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  
   /* Desktop form grid layout */
   .desktop-form-grid {
     display: grid;
@@ -179,6 +225,12 @@
     margin-bottom: 1.5rem;
   }
   
+  /* Dark mode support for form sections */
+  :is(.dark) .desktop-form-section {
+    background: #111827;
+    border: 1px solid #374151;
+  }
+  
   /* Desktop inputs and form elements */
   .desktop-input {
     width: 100%;
@@ -194,6 +246,22 @@
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  /* Dark mode support for inputs */
+  :is(.dark) .desktop-input {
+    background: #1f2937;
+    border: 1px solid #374151;
+    color: #f9fafb;
+  }
+  
+  :is(.dark) .desktop-input::placeholder {
+    color: #9ca3af;
+  }
+  
+  :is(.dark) .desktop-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
   }
   
   .desktop-textarea {
@@ -215,6 +283,22 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
   
+  /* Dark mode support for textarea */
+  :is(.dark) .desktop-textarea {
+    background: #1f2937;
+    border: 1px solid #374151;
+    color: #f9fafb;
+  }
+  
+  :is(.dark) .desktop-textarea::placeholder {
+    color: #9ca3af;
+  }
+  
+  :is(.dark) .desktop-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+  
   /* Desktop select styling */
   .desktop-select {
     width: 100%;
@@ -226,6 +310,13 @@
     background: white;
   }
   
+  /* Dark mode support for select */
+  :is(.dark) .desktop-select {
+    background: #1f2937;
+    border: 1px solid #374151;
+    color: #f9fafb;
+  }
+  
   /* Desktop labels */
   .desktop-label {
     display: block;
@@ -233,6 +324,11 @@
     font-weight: 500;
     color: #374151;
     margin-bottom: 0.5rem;
+  }
+  
+  /* Dark mode support for labels */
+  :is(.dark) .desktop-label {
+    color: #d1d5db;
   }
   
   /* Desktop buttons */
@@ -309,6 +405,12 @@
     margin-bottom: 1rem;
   }
   
+  /* Dark mode support for card sections */
+  :is(.dark) .desktop-card-section {
+    background: #111827;
+    border: 1px solid #374151;
+  }
+  
   .desktop-section-title {
     font-size: 1.125rem;
     font-weight: 600;
@@ -317,6 +419,11 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+  }
+  
+  /* Dark mode support for section titles */
+  :is(.dark) .desktop-section-title {
+    color: #f1f5f9;
   }
   
   .desktop-form-group {
@@ -423,6 +530,17 @@
     transform: translateY(-1px);
   }
   
+  /* Dark mode support for cards */
+  :is(.dark) .desktop-card {
+    background: #1f2937;
+    border: 1px solid #374151;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  
+  :is(.dark) .desktop-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+  
   /* Desktop scroll area for optimized lists */
   .desktop-scroll-area {
     max-height: calc(100vh - 200px);
@@ -446,5 +564,18 @@
   
   .desktop-scroll-area::-webkit-scrollbar-thumb:hover {
     background: #a1a1a1;
+  }
+  
+  /* Dark mode support for scroll area */
+  :is(.dark) .desktop-scroll-area::-webkit-scrollbar-track {
+    background: #374151;
+  }
+  
+  :is(.dark) .desktop-scroll-area::-webkit-scrollbar-thumb {
+    background: #6b7280;
+  }
+  
+  :is(.dark) .desktop-scroll-area::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
   }
 }

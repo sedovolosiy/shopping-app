@@ -37,6 +37,7 @@ model ShoppingList {
   user      User?              @relation(fields: [userId], references: [id])
   store     Store?             @relation(fields: [storeId], references: [id])
   items     ShoppingListItem[]
+  status    String             @default("active") // 'active' | 'completed'
 }
 
 model ShoppingListItem {

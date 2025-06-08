@@ -462,16 +462,6 @@ export default function HomePage() {
     }
   }, [isOptimized]);
 
-  const handleToggleItem = useCallback((itemId: string) => {
-    setOptimizedItems(prevItems =>
-      prevItems.map(item =>
-        item.id === itemId
-          ? { ...item, purchased: !item.purchased }
-          : item
-      )
-    );
-  }, []);
-  
   const handleDeleteItem = useCallback((itemId: string) => {
     setOptimizedItems(prevItems => prevItems.filter(item => item.id !== itemId));
   }, []);
@@ -547,13 +537,61 @@ export default function HomePage() {
 
   // Main render logic for different views
   // Additional handler functions for mobile UI
-  const handleItemCheck = useCallback((itemId: string) => {
+  const handleItemCheck = useCallback(async (itemId: string) => {
+    // First, find the current item to determine the new status
+    const currentItem = optimizedItems.find(item => item.id === itemId);
+    if (!currentItem) {
+      console.error('❌ Item not found:', itemId);
+      return;
+    }
+    
+    const newPurchasedStatus = !currentItem.purchased;
+    
+    // Update the UI optimistically
     setOptimizedItems(prevItems =>
-      prevItems.map(item =>
-        item.id === itemId ? { ...item, purchased: !item.purchased } : item
-      )
+      prevItems.map(item => {
+        if (item.id === itemId) {
+          return { ...item, purchased: newPurchasedStatus };
+        }
+        return item;
+      })
     );
-  }, []);
+    
+    // Then update the database
+    try {
+      const response = await fetch('/api/shopping-list/items', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          itemId, 
+          purchased: newPurchasedStatus 
+        }),
+      });
+      
+      const data = await response.json();
+      if (!data.success) {
+        console.error('❌ Failed to update item in database:', data);
+        // Revert the UI change if the API call failed
+        setOptimizedItems(prevItems =>
+          prevItems.map(item =>
+            item.id === itemId
+              ? { ...item, purchased: !newPurchasedStatus }
+              : item
+          )
+        );
+      }
+    } catch (error) {
+      console.error('❌ Error updating item:', error);
+      // Revert the UI change if the API call failed
+      setOptimizedItems(prevItems =>
+        prevItems.map(item =>
+          item.id === itemId
+            ? { ...item, purchased: !newPurchasedStatus }
+            : item
+        )
+      );
+    }
+  }, [optimizedItems]);
   
   const handleLoadList = useCallback((list: any) => {
     // Implementation would go here
@@ -634,6 +672,29 @@ export default function HomePage() {
         );
       
       case AppState.OPTIMIZED:
+        // Find the current listId from savedLists if possible
+        let currentListId = null;
+        // Try to find by matching items and name (fallback if needed)
+        if (isEditingExistingList && savedLists.length > 0 && listName) {
+          const found = savedLists.find(l => l.name === listName && l.items.length === optimizedItems.length);
+          if (found) currentListId = found.id;
+        } else if (savedLists.length > 0 && optimizedItems.length > 0) {
+          // fallback: find by items
+          const found = savedLists.find(l => l.items.length === optimizedItems.length && l.items.every((item, idx) => item.name === optimizedItems[idx].name));
+          if (found) currentListId = found.id;
+        }
+        // fallback: if optimizedItems[0] has shoppingListId or listId
+        if (!currentListId && optimizedItems[0] && optimizedItems[0].shoppingListId) {
+          currentListId = optimizedItems[0].shoppingListId;
+        }
+        // fallback: if optimizedItems[0] has listId
+        if (!currentListId && optimizedItems[0] && optimizedItems[0].listId) {
+          currentListId = optimizedItems[0].listId;
+        }
+        // fallback: if savedLists[0] exists
+        if (!currentListId && savedLists.length > 0) {
+          currentListId = savedLists[0].id;
+        }
         return (
           <OptimizedListView
             items={optimizedItems}
@@ -642,6 +703,8 @@ export default function HomePage() {
             onReset={handleReset}
             isAIProcessed={isAIProcessed}
             onToggleForm={() => setShowForm(!showForm)}
+            listId={currentListId}
+            onStatusChange={loadSavedLists} // call to refresh saved lists after PATCH
           />
         );
       

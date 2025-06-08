@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShoppingItem } from '@/lib/types';
@@ -19,6 +19,8 @@ interface OptimizedListViewProps {
   onReset: () => void;
   isAIProcessed?: boolean;
   onToggleForm?: () => void;
+  listId: string; // добавлено
+  onStatusChange?: () => void; // добавлено
 }
 
 const OptimizedListView: React.FC<OptimizedListViewProps> = ({
@@ -28,7 +30,9 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
   onDeleteItem,
   onReset,
   isAIProcessed = false,
-  onToggleForm
+  onToggleForm,
+  listId, // добавлено
+  onStatusChange, // добавлено
 }) => {
   const [expandAll, setExpandAll] = useState<boolean>(true);
   const [expandedCategories, setExpandedCategories] = useState<{[key: string]: boolean}>({});
@@ -68,6 +72,26 @@ const OptimizedListView: React.FC<OptimizedListViewProps> = ({
     // Если нет, используем глобальную настройку
     return expandAll;
   };
+
+  useEffect(() => {
+    if (totalItems > 0 && completedItems === totalItems && listId) {
+      // Отправить PATCH-запрос для установки статуса completed
+      fetch('/api/shopping-list', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listId }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && typeof onStatusChange === 'function') {
+            onStatusChange();
+          }
+        })
+        .catch((error) => {
+          console.error('Error updating list status:', error);
+        });
+    }
+  }, [completedItems, totalItems, listId, onStatusChange]);
 
   if (safeItems.length === 0) {
     return null;

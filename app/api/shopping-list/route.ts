@@ -53,3 +53,21 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: false, message: 'Failed to delete shopping list', error: error.message }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    const body = await request.json();
+    const { listId } = body;
+    
+    if (!listId) {
+      return NextResponse.json({ success: false, message: 'Missing listId' }, { status: 400 });
+    }
+    
+    const result = await shoppingListService.setCompletedIfAllPurchased(listId);
+    
+    return NextResponse.json(result, { status: 200 });
+  } catch (error: any) {
+    console.error('❌ PATCH error:', error);
+    return NextResponse.json({ success: false, message: 'Failed to update status', error: error.message }, { status: 500 });
+  }
+}

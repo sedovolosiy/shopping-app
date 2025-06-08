@@ -113,4 +113,29 @@ export class ShoppingListService {
       status: 200,
     };
   }
+
+  async setCompletedIfAllPurchased(listId: string) {
+    // Получаем список и его товары
+    const list = await prisma.shoppingList.findUnique({
+      where: { id: listId },
+      include: { items: true },
+    });
+    
+    if (!list) {
+      return { success: false, error: 'List not found' };
+    }
+    
+    // Проверяем, все ли товары куплены
+    const allPurchased = list.items.length > 0 && list.items.every(item => item.purchased);
+    
+    if (allPurchased && list.status !== 'completed') {
+      await prisma.shoppingList.update({
+        where: { id: listId },
+        data: { status: 'completed' },
+      });
+      return { success: true, status: 'completed' };
+    }
+    
+    return { success: true, status: list.status };
+  }
 }

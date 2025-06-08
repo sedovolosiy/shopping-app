@@ -23,6 +23,7 @@ interface SavedList {
   name: string;
   createdAt: string;
   storeId: string;
+  status: 'active' | 'completed';
   items: Array<{
     id: string;
     name: string;
@@ -115,9 +116,13 @@ export default function SavedListsView({
     return storesMap[storeId] || 'Магазин';
   };
 
+  // Фильтрация: показывать только активные списки
   const filteredLists = selectedStore === 'all' 
-    ? savedLists 
-    : savedLists.filter(list => list.storeId === selectedStore);
+    ? savedLists.filter(list => list.status !== 'completed')
+    : savedLists.filter(list => list.storeId === selectedStore && list.status !== 'completed');
+
+  // Списки завершённые
+  const completedLists = savedLists.filter(list => list.status === 'completed');
 
   const uniqueStores = Array.from(new Set(savedLists.map(list => list.storeId)));
 
@@ -287,11 +292,21 @@ export default function SavedListsView({
                     }`}>
                       {list.name}
                       {isClient && (
-                        <span className={`font-normal text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded px-2 py-0.5 ml-2 ${
-                          isDesktop ? 'desktop-text' : 'text-base'
-                        }`}>
-                          {getStoreDisplayName(list.storeId)}
-                        </span>
+                        <>
+                          <span className={`font-normal text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded px-2 py-0.5 ml-2 ${
+                            isDesktop ? 'desktop-text' : 'text-base'
+                          }`}>
+                            {getStoreDisplayName(list.storeId)}
+                          </span>
+                          {/* Лейбл статуса для отладки */}
+                          <span className={`font-normal rounded px-2 py-0.5 ml-2 text-xs ${
+                            list.status === 'completed' 
+                              ? 'text-green-700 bg-green-100 dark:bg-green-900/30 dark:text-green-300' 
+                              : 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-300'
+                          }`}>
+                            {list.status === 'completed' ? 'Выполнен' : 'Активен'}
+                          </span>
+                        </>
                       )}
                     </CardTitle>
                   </div>
@@ -374,6 +389,70 @@ export default function SavedListsView({
           ))}
         </AnimatePresence>
       </div>
+
+      {/* Завершённые списки */}
+      {completedLists.length > 0 && (
+        <div className="mt-8">
+          <h3 className="font-semibold text-muted-foreground mb-2">
+            Завершённые списки
+          </h3>
+          <div className={gridClasses}>
+            <AnimatePresence>
+              {completedLists.map((list) => (
+                <motion.div
+                  key={list.id}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card className={`opacity-60 cursor-pointer transition-shadow ${
+                    isDesktop 
+                      ? 'desktop-card hover:shadow-xl' 
+                      : 'hover:shadow-lg'
+                  }`}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <div className="flex flex-col">
+                        <CardTitle className={`font-semibold flex items-center gap-2 ${
+                          isDesktop ? 'desktop-subheading' : 'text-xl'
+                        }`}>
+                          {list.name}
+                          {isClient && (
+                            <span className={`font-normal text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded px-2 py-0.5 ml-2 ${
+                              isDesktop ? 'desktop-text' : 'text-base'
+                            }`}>
+                              {getStoreDisplayName(list.storeId)}
+                            </span>
+                          )}
+                        </CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center text-muted-foreground">
+                        <Package className="mr-1 h-4 w-4" />
+                        {list.items.length} товаров
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {list.items.slice(0, 3).map((item) => (
+                          <Badge key={item.id} variant="outline" className={isDesktop ? 'desktop-small-text' : 'text-xs'}>
+                            {item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name}
+                          </Badge>
+                        ))}
+                        {list.items.length > 3 && (
+                          <Badge variant="outline" className={isDesktop ? 'desktop-small-text' : 'text-xs'}>
+                            +{list.items.length - 3}
+                          </Badge>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog 

@@ -1,4 +1,3 @@
-
 export interface ShoppingItem {
   id: string;
   name: string;
@@ -27,3 +26,15 @@ export interface StoreConfigs {
 }
 
 export type StoreType = 'lidl' | 'biedronka' | 'aldi';
+
+export interface ShoppingList {
+  id: string;
+  name: string;
+  storeId?: string;
+  rawText: string;
+  userId?: string;
+  createdAt: string;
+  updatedAt: string;
+  status: 'active' | 'completed';
+  items: ShoppingItem[];
+}

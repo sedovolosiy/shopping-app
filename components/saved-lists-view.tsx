@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Calendar, Package, Plus, User, LogOut, Trash2 } from 'lucide-react';
+import { ShoppingCart, Calendar, Package, Plus, User, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDevice } from '@/components/device-detector';
 import {
@@ -159,72 +159,17 @@ export default function SavedListsView({
         WebkitOverflowScrolling: 'touch'
       })
     }}>
-      {/* Header - адаптивная компоновка */}
-      {isDesktop ? (
-        // Desktop: заголовок и кнопки в одной строке
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="desktop-heading font-bold text-gray-900 dark:text-white flex items-center">
-              <User className="mr-2 text-blue-600 h-8 w-8" />
-              Мои списки покупок
-            </h1>
-            <p className="desktop-text text-muted-foreground mt-1">
-              Пользователь: <span className="font-medium">{userId}</span>
-            </p>
-          </div>
-          <div className="flex space-x-3">
-            <Button 
-              variant="outline" 
-              onClick={onRefresh} 
-              disabled={isLoading}
-              className="desktop-button-secondary"
-            >
-              Обновить
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={onLogout}
-              className="desktop-button-secondary"
-            >
-              <LogOut className="mr-2 h-5 w-5" />
-              Выйти
-            </Button>
-          </div>
-        </div>
-      ) : (
-        // Mobile/Tablet: заголовок сверху, кнопки снизу
-        <div className="space-y-4">
-          <div className="text-center">
-            <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center justify-center">
-              <User className="mr-2 text-blue-600 h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="leading-tight">Мои списки покупок</span>
-            </h1>
-            <p className="text-muted-foreground mt-1 text-sm">
-              Пользователь: <span className="font-medium">{userId}</span>
-            </p>
-          </div>
-          <div className="flex justify-center space-x-2">
-            <Button 
-              variant="outline" 
-              onClick={onRefresh} 
-              disabled={isLoading}
-              size="sm"
-              className="px-3 py-2 text-sm"
-            >
-              Обновить
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={onLogout}
-              size="sm"
-              className="px-3 py-2 text-sm"
-            >
-              <LogOut className="mr-1 h-4 w-4" />
-              Выйти
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Header */}
+      <div className="text-center">
+        <h1 className={`font-bold text-gray-900 dark:text-white flex items-center justify-center ${
+          isDesktop ? 'desktop-heading' : 'text-lg sm:text-xl'
+        }`}>
+          <User className={`mr-2 text-blue-600 ${
+            isDesktop ? 'h-8 w-8' : 'h-5 w-5 sm:h-6 sm:w-6'
+          }`} />
+          <span className="leading-tight">Мои списки покупок</span>
+        </h1>
+      </div>
 
       {/* Store Filter */}
       {isClient && uniqueStores.length > 1 && (

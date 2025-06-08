@@ -126,22 +126,14 @@ export default function UserLogin({ onUserSelect, isLoading = false }: UserLogin
           
           <div className="border-t border-gray-200 dark:border-gray-600 mt-6 pt-6">
             <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-3">Быстрый вход</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex justify-center">
               <Button
                 variant="outline"
-                className="mobile-button mobile-button-outline h-12"
+                className="mobile-button mobile-button-outline h-12 w-40 text-base font-semibold shadow-sm border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"
                 onClick={() => handleQuickSelect('guest-user')}
                 disabled={isLoading}
               >
                 Гость
-              </Button>
-              <Button
-                variant="outline"
-                className="mobile-button mobile-button-outline h-12 bg-blue-50 border-blue-100 text-blue-700"
-                onClick={() => handleQuickSelect('demo-user')}
-                disabled={isLoading}
-              >
-                Демо
               </Button>
             </div>
           </div>

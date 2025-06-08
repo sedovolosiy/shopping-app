@@ -764,6 +764,7 @@ export default function HomePage() {
               activeTab={activeTab}
               onChangeTab={handleTabChange}
               onOpenSettings={() => setIsSettingsDrawerOpen(true)}
+              currentUserId={currentUserId}
             >
               <MainClientContent
                 appState={appState}

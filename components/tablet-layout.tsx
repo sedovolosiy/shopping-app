@@ -9,6 +9,7 @@ interface TabletLayoutProps {
   onChangeTab: (tab: string) => void;
   onOpenSettings: () => void;
   children: React.ReactNode;
+  currentUserId?: string;
 }
 
 const TabletLayout: React.FC<TabletLayoutProps> = ({
@@ -16,6 +17,7 @@ const TabletLayout: React.FC<TabletLayoutProps> = ({
   onChangeTab,
   onOpenSettings,
   children,
+  currentUserId,
 }) => {
   const { orientation } = useDevice();
   const isLandscape = orientation === 'landscape';
@@ -26,6 +28,7 @@ const TabletLayout: React.FC<TabletLayoutProps> = ({
         activeTab={activeTab}
         onChangeTab={onChangeTab}
         onOpenSettings={onOpenSettings}
+        isLoggedIn={!!currentUserId}
       />
       
       <main 

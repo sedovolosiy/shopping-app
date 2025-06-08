@@ -1,0 +1,578 @@
+/* Intermediate screen styles (709px - 1024px) for Shopping Optimizer app */
+/* This CSS file handles the gap between tablet and desktop layouts */
+
+@media (min-width: 709px) and (max-width: 1024px) {
+  /* Force desktop layout for intermediate screens */
+  .desktop-force.intermediate-responsive {
+    display: flex !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+  }
+  
+  /* Hide mobile/tablet layouts on intermediate screens */
+  .mobile-force, .tablet-force {
+    display: none !important;
+  }
+  
+  /* Intermediate desktop sidebar - VERY SPECIFIC TARGETING */
+  .desktop-sidebar.intermediate-sidebar,
+  aside.desktop-sidebar.intermediate-sidebar {
+    width: 220px !important;
+    flex-shrink: 0 !important;
+    background: white !important;
+    border-right: 1px solid #e5e7eb !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Dark mode support for sidebar */
+  :is(.dark) .desktop-sidebar.intermediate-sidebar,
+  :is(.dark) aside.desktop-sidebar.intermediate-sidebar {
+    background: #1f2937 !important;
+    border-right: 1px solid #374151 !important;
+  }
+  
+  /* NAVIGATION BUTTONS - Ultra specific targeting */
+  .intermediate-nav .intermediate-nav-button,
+  .intermediate-nav button.intermediate-nav-button,
+  nav.intermediate-nav button.intermediate-nav-button {
+    width: 100% !important;
+    padding: 0.75rem !important;
+    border: none !important;
+    background: transparent !important;
+    color: #6b7280 !important;
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    margin-bottom: 0.125rem !important;
+    min-height: 40px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+    transition: all 0.15s ease !important;
+  }
+  
+  .intermediate-nav .intermediate-nav-button:hover,
+  .intermediate-nav button.intermediate-nav-button:hover {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+    box-shadow: none !important;
+  }
+  
+  /* Active state */
+  .intermediate-nav .intermediate-nav-active,
+  .intermediate-nav button.intermediate-nav-active {
+    background: #3b82f6 !important;
+    color: white !important;
+  }
+  
+  .intermediate-nav .intermediate-nav-active:hover,
+  .intermediate-nav button.intermediate-nav-active:hover {
+    background: #2563eb !important;
+    color: white !important;
+  }
+  
+  /* Dark mode for nav buttons */
+  :is(.dark) .intermediate-nav .intermediate-nav-button,
+  :is(.dark) .intermediate-nav button.intermediate-nav-button {
+    color: #9ca3af !important;
+  }
+  
+  :is(.dark) .intermediate-nav .intermediate-nav-button:hover,
+  :is(.dark) .intermediate-nav button.intermediate-nav-button:hover {
+    background: #374151 !important;
+    color: #d1d5db !important;
+  }
+  
+  /* Icons and text in buttons - SPECIFIC TARGETING */
+  .intermediate-nav .intermediate-nav-button .lucide,
+  .intermediate-nav button.intermediate-nav-button .lucide {
+    flex-shrink: 0 !important;
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+  }
+  
+  .intermediate-nav .intermediate-nav-button span,
+  .intermediate-nav button.intermediate-nav-button span {
+    flex: 1 !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+    line-height: 1.2 !important;
+    font-weight: 500 !important;
+  }
+  
+  /* Bottom section buttons - SPECIFIC TARGETING */
+  .intermediate-bottom .intermediate-theme-btn,
+  .intermediate-bottom .intermediate-logout-btn,
+  .intermediate-bottom button {
+    width: 100% !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.8125rem !important;
+    justify-content: flex-start !important;
+    gap: 0.5rem !important;
+    text-align: left !important;
+    border-radius: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+  
+  /* Header section styling */
+  .intermediate-header,
+  .intermediate-sidebar .intermediate-header {
+    padding: 1rem !important;
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+  
+  :is(.dark) .intermediate-header,
+  :is(.dark) .intermediate-sidebar .intermediate-header {
+    border-bottom: 1px solid #374151 !important;
+  }
+  
+  /* Navigation section */
+  .intermediate-nav,
+  .intermediate-sidebar .intermediate-nav {
+    padding: 0.75rem !important;
+    flex: 1 !important;
+  }
+  
+  /* Bottom section */
+  .intermediate-bottom,
+  .intermediate-sidebar .intermediate-bottom {
+    padding: 0.75rem !important;
+    border-top: 1px solid #e5e7eb !important;
+  }
+  
+  :is(.dark) .intermediate-bottom,
+  :is(.dark) .intermediate-sidebar .intermediate-bottom {
+    border-top: 1px solid #374151 !important;
+  }
+  
+  /* Typography adjustments for intermediate screens */
+  .intermediate-sidebar .desktop-heading,
+  .intermediate-sidebar h1 {
+    font-size: 1rem !important;
+    line-height: 1.3 !important;
+    font-weight: 700 !important;
+  }
+  
+  .intermediate-sidebar .desktop-text,
+  .intermediate-sidebar p {
+    font-size: 0.75rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  /* Main content area */
+  .intermediate-main,
+  main.intermediate-main {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    background: #f8fafc !important;
+    padding: 1rem !important;
+  }
+  
+  :is(.dark) .intermediate-main,
+  :is(.dark) main.intermediate-main {
+    background: #111827 !important;
+  }
+  
+  /* Container adjustments */
+  .intermediate-container,
+  .intermediate-main .intermediate-container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    height: 100% !important;
+    padding: 0 !important;
+  }
+  
+  /* Intermediate main content area */
+  .desktop-main-content-panel,
+  main.desktop-main-content-panel {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    background: #f8fafc !important;
+    padding: 1rem !important; /* Reduced from 1.5rem */
+  }
+
+  /* Dark mode support for main content */
+  :is(.dark) .desktop-main-content-panel,
+  :is(.dark) main.desktop-main-content-panel {
+    background: #111827 !important;
+  }
+  
+  /* Intermediate navigation buttons - better spacing and alignment */
+  .desktop-nav-button {
+    width: 100% !important;
+    padding: 0.75rem 0.75rem !important; /* Slightly reduced horizontal padding */
+    border: none !important;
+    background: transparent !important;
+    color: #6b7280 !important;
+    font-size: 0.8125rem !important; /* Slightly smaller font */
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    text-align: left !important;
+    margin-bottom: 0.125rem !important;
+    min-height: 40px !important; /* Ensure consistent height */
+    white-space: nowrap !important; /* Prevent text wrapping */
+    overflow: hidden !important; /* Handle overflow gracefully */
+    justify-content: flex-start !important;
+  }
+  
+  .desktop-nav-button:hover {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+  }
+  
+  .desktop-nav-button-active {
+    background: #3b82f6 !important;
+    color: white !important;
+  }
+  
+  .desktop-nav-button-active:hover {
+    background: #2563eb !important;
+  }
+  
+  /* Better icon and text alignment */
+  .desktop-nav-button .lucide {
+    flex-shrink: 0;
+  }
+  
+  .desktop-nav-button span {
+    flex: 1;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    line-height: 1.2;
+  }
+  
+  /* Dark mode support for nav buttons */
+  :is(.dark) .desktop-nav-button {
+    color: #9ca3af !important;
+  }
+  
+  :is(.dark) .desktop-nav-button:hover {
+    background: #374151 !important;
+    color: #d1d5db !important;
+  }
+  
+  /* Additional overrides for existing button classes */
+  .desktop-sidebar nav .relative {
+    width: 100% !important;
+    padding: 0.75rem 0.75rem !important;
+    border: none !important;
+    background: transparent !important;
+    color: #6b7280 !important;
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    text-align: left !important;
+    margin-bottom: 0.125rem !important;
+    min-height: 40px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    justify-content: flex-start !important;
+  }
+  
+  .desktop-sidebar nav .relative:hover {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+  }
+  
+  /* Fix for bottom section buttons */
+  .desktop-sidebar .space-y-3 button {
+    width: 100% !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.8125rem !important;
+    justify-content: flex-start !important;
+    gap: 0.5rem !important;
+    text-align: left !important;
+  }
+  
+  /* Intermediate header in sidebar - more compact */
+  .desktop-sidebar .desktop-heading {
+    font-size: 1rem; /* Reduced from 1.125rem */
+    line-height: 1.3;
+  }
+  
+  .desktop-sidebar .desktop-text {
+    font-size: 0.75rem; /* Reduced subtitle size */
+  }
+  
+  /* Sidebar sections spacing */
+  .desktop-sidebar > div:first-child {
+    padding: 1rem !important; /* Reduced from 1.5rem on all sides */
+  }
+  
+  .desktop-sidebar nav {
+    padding: 0.75rem !important; /* Reduced padding */
+  }
+  
+  .desktop-sidebar > div:last-child {
+    padding: 0.75rem !important; /* Reduced padding */
+  }
+  
+  /* Navigation buttons specific targeting */
+  .desktop-sidebar nav button {
+    width: 100% !important;
+    padding: 0.75rem 0.75rem !important;
+    border: none !important;
+    background: transparent !important;
+    color: #6b7280 !important;
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    text-align: left !important;
+    margin-bottom: 0.125rem !important;
+    min-height: 40px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    justify-content: flex-start !important;
+  }
+  
+  .desktop-sidebar nav button:hover {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+  }
+  
+  /* Dark mode for nav buttons */
+  :is(.dark) .desktop-sidebar nav button {
+    color: #9ca3af !important;
+  }
+  
+  :is(.dark) .desktop-sidebar nav button:hover {
+    background: #374151 !important;
+    color: #d1d5db !important;
+  }
+  
+  /* Bottom section buttons - more compact */
+  .desktop-sidebar .ui-button {
+    font-size: 0.8125rem;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  /* Container adjustments */
+  .desktop-container {
+    max-width: 100%;
+    margin: 0;
+    height: 100%;
+    padding: 0;
+  }
+  
+  /* Form container adjustments */
+  .desktop-form-container {
+    max-width: 100%;
+    margin: 0;
+    padding: 1.5rem; /* Reduced padding */
+    min-height: calc(100vh - 3rem);
+  }
+  
+  /* Content panels adjustments */
+  .desktop-content-panel {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem; /* Reduced padding */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+  }
+  
+  /* Dark mode support for content panels */
+  :is(.dark) .desktop-content-panel {
+    background: #1f2937;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* User info section - more compact */
+  .desktop-sidebar .space-y-2 > div:first-child {
+    padding: 0.5rem 0.75rem; /* Reduced padding */
+  }
+  
+  .desktop-sidebar .space-y-2 p {
+    font-size: 0.75rem; /* Smaller text */
+  }
+  
+  /* Button improvements for better touch targets */
+  .desktop-sidebar button {
+    min-height: 36px;
+    touch-action: manipulation;
+  }
+  
+  /* Typography adjustments */
+  .desktop-heading {
+    font-size: 1.5rem; /* Slightly smaller for intermediate screens */
+    line-height: 1.3;
+  }
+  
+  .desktop-subheading {
+    font-size: 1.125rem;
+    line-height: 1.3;
+  }
+  
+  .desktop-text {
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+}
+
+/* Specific adjustments for narrow intermediate screens (709px - 850px) */
+@media (min-width: 709px) and (max-width: 850px) {
+  .desktop-sidebar {
+    width: 200px; /* Even narrower for smaller intermediate screens */
+  }
+  
+  .desktop-nav-button {
+    padding: 0.625rem 0.5rem; /* Further reduced padding */
+    font-size: 0.75rem; /* Smaller font */
+    gap: 0.375rem; /* Reduced gap */
+  }
+  
+  .desktop-nav-button .lucide {
+    width: 1rem;
+    height: 1rem; /* Smaller icons */
+  }
+  
+  .desktop-sidebar > div:first-child {
+    padding: 0.75rem; /* Further reduced padding */
+  }
+  
+  .desktop-sidebar .desktop-heading {
+    font-size: 0.875rem;
+  }
+  
+  .desktop-sidebar .desktop-text {
+    font-size: 0.6875rem;
+  }
+  
+  /* Hide subtitle on very narrow intermediate screens */
+  .desktop-sidebar .desktop-text {
+    display: none;
+  }
+  
+  /* Make logo section more compact */
+  .desktop-sidebar > div:first-child .flex {
+    gap: 0.5rem; /* Reduced gap */
+  }
+  
+  .desktop-sidebar > div:first-child .w-10 {
+    width: 2rem;
+    height: 2rem; /* Smaller logo */
+  }
+  
+  .desktop-sidebar > div:first-child .h-6 {
+    width: 1rem;
+    height: 1rem; /* Smaller icon in logo */
+  }
+}
+
+/* CRITICAL OVERRIDES - HIGHEST PRIORITY */
+@media (min-width: 709px) and (max-width: 1024px) {
+  /* Nuclear option - override everything for nav buttons */
+  [class*="intermediate-nav"] button,
+  .intermediate-nav-button,
+  .intermediate-responsive .intermediate-sidebar nav button {
+    width: 100% !important;
+    padding: 12px !important;
+    border: none !important;
+    background: transparent !important;
+    color: #6b7280 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    margin-bottom: 2px !important;
+    min-height: 40px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+    transition: all 0.15s ease !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+  }
+  
+  [class*="intermediate-nav"] button:hover,
+  .intermediate-nav-button:hover,
+  .intermediate-responsive .intermediate-sidebar nav button:hover {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+  
+  /* Active state overrides */
+  [class*="intermediate-nav-active"],
+  .intermediate-nav-active {
+    background: #3b82f6 !important;
+    color: white !important;
+  }
+  
+  [class*="intermediate-nav-active"]:hover,
+  .intermediate-nav-active:hover {
+    background: #2563eb !important;
+    color: white !important;
+  }
+  
+  /* Sidebar width override */
+  .intermediate-responsive .intermediate-sidebar {
+    width: 220px !important;
+    min-width: 220px !important;
+    max-width: 220px !important;
+  }
+  
+  /* Button icon sizing */
+  [class*="intermediate-nav"] button svg,
+  .intermediate-nav-button svg {
+    width: 20px !important;
+    height: 20px !important;
+    flex-shrink: 0 !important;
+  }
+  
+  /* Button text styling */
+  [class*="intermediate-nav"] button span,
+  .intermediate-nav-button span {
+    flex: 1 !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+    line-height: 1.2 !important;
+    font-weight: 500 !important;
+  }
+}
+
+/* EMERGENCY OVERRIDES FOR NARROW SCREENS */
+@media (min-width: 709px) and (max-width: 850px) {
+  .intermediate-responsive .intermediate-sidebar {
+    width: 200px !important;
+    min-width: 200px !important;
+    max-width: 200px !important;
+  }
+  
+  [class*="intermediate-nav"] button,
+  .intermediate-nav-button {
+    padding: 10px 8px !important;
+    font-size: 12px !important;
+    gap: 6px !important;
+  }
+  
+  [class*="intermediate-nav"] button svg,
+  .intermediate-nav-button svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}

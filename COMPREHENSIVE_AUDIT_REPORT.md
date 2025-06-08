@@ -433,17 +433,20 @@ The application uses a sophisticated CSS architecture:
 
 **Confirmed Unused Files:**
 
-1. **`app/desktop-styles-new.css`** - Not imported in layout.tsx
-2. **`app/sw-register.ts`** - Old service worker implementation
-3. **`categorization-test.ts`** - Test file not integrated
-4. **`final-test.ts`** - Test file not integrated
-5. **`landing.tsx`** - Landing page component not used
-6. **`page.tsx` (root)** - Duplicate of app/page.tsx
-7. **`global_package.json`** - Non-standard package file
+1. **`app/desktop-styles-new.css`** - Not imported in layout.tsx - removed
+2. **`categorization-test.ts`** - Test file not integrated - removed
+3. **`final-test.ts`** - Test file not integrated - removed
+4. **`landing.tsx`** - Landing page component not used - removed
+5. **`page.tsx` (root)** - Duplicate of app/page.tsx - removed
+6. **`global_package.json`** - Non-standard package file - removed
+
+**Files Previously Misidentified as Unused:**
+
+1. **`app/sw-register.ts`** - ✅ **ACTIVE** - Used by service-worker-register.tsx for PWA functionality
 
 **Potentially Problematic Files:**
 
-1. **`layout.tsx` (root)** - May conflict with app/layout.tsx
+1. **`layout.tsx` (root)** - May conflict with app/layout.tsx ✅ **ACTIVE**
 2. **Toast Implementation Duplication:**
    - `components/ui/use-toast.ts`
    - `hooks/use-toast.ts`
@@ -578,12 +581,11 @@ The application uses a sophisticated CSS architecture:
    rm components/ui/date-range-picker.tsx
    ```
 
-2. **Clean Up Duplicate Files:**
+2. **Clean Up Unused Files:**
 
    ```bash
-   # Remove duplicate/unused files
+   # Remove confirmed unused files (DO NOT remove app/sw-register.ts - it's active!)
    rm app/desktop-styles-new.css
-   rm app/sw-register.ts
    rm categorization-test.ts
    rm final-test.ts
    rm landing.tsx
@@ -670,8 +672,13 @@ The Shopping Optimizer SPA demonstrates excellent responsive design architecture
 
 This audit provides a comprehensive foundation for ongoing development and optimization efforts. The application is well-architected and ready for production with the recommended cleanup and optimizations implemented.
 
+### Audit Update:
+
+**File Status Correction:** Upon detailed investigation, `app/sw-register.ts` was found to be **ACTIVE** and essential for PWA functionality. It is imported by `service-worker-register.tsx` and provides critical service worker registration capabilities including offline support, background sync, and push notifications.
+
 ---
 
 **Audit Completed:** June 8, 2025  
 **Auditor:** AI Assistant  
+**Last Updated:** June 8, 2025  
 **Next Review:** Recommended in 3 months or after major feature releases

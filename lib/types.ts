@@ -6,6 +6,7 @@ export interface ShoppingItem {
   purchased: boolean;
   originalText: string;
   language?: string; // Optional language property to store the detected language
+  listId?: string; // Added listId property to associate items with a shopping list
 }
 
 export interface CategoryDefinition {

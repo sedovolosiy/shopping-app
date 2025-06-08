@@ -680,12 +680,8 @@ export default function HomePage() {
           if (found) currentListId = found.id;
         } else if (savedLists.length > 0 && optimizedItems.length > 0) {
           // fallback: find by items
-          const found = savedLists.find(l => l.items.length === optimizedItems.length && l.items.every((item, idx) => item.name === optimizedItems[idx].name));
+          const found = savedLists.find(l => l.items.length === optimizedItems.length && l.items.every((item: ShoppingItem, idx: number) => item.name === optimizedItems[idx].name));
           if (found) currentListId = found.id;
-        }
-        // fallback: if optimizedItems[0] has shoppingListId or listId
-        if (!currentListId && optimizedItems[0] && optimizedItems[0].shoppingListId) {
-          currentListId = optimizedItems[0].shoppingListId;
         }
         // fallback: if optimizedItems[0] has listId
         if (!currentListId && optimizedItems[0] && optimizedItems[0].listId) {

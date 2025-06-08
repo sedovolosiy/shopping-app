@@ -3,17 +3,21 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ErrorDisplay from "@/components/error-display";
+import { ErrorInfo } from "@/lib/error-handling";
 
 interface DesktopMainContentProps {
   appState: string;
   isOptimized: boolean;
   isLoading: boolean;
   isAIProcessed: boolean;
-  error: string | null;
+  error: ErrorInfo | null;
   renderCurrentView: () => React.ReactNode;
   handleReset: () => void;
   showForm: boolean;
   optimizedItems: any[];
+  onRetryError?: () => void;
+  onDismissError?: () => void;
 }
 
 const DesktopMainContent: React.FC<DesktopMainContentProps> = ({
@@ -26,6 +30,8 @@ const DesktopMainContent: React.FC<DesktopMainContentProps> = ({
   handleReset,
   showForm,
   optimizedItems,
+  onRetryError,
+  onDismissError
 }) => {
   // Определяем layout в зависимости от состояния
   const isOptimizedState = appState === "optimized" && isOptimized && optimizedItems.length > 0;
@@ -143,15 +149,12 @@ const DesktopMainContent: React.FC<DesktopMainContentProps> = ({
         )}
 
         {/* Ошибки */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="desktop-error-message"
-          >
-            <p className="text-destructive text-center">{error}</p>
-          </motion.div>
-        )}
+        <ErrorDisplay 
+          error={error} 
+          onRetry={error?.retryable && onRetryError ? onRetryError : undefined}
+          onDismiss={onDismissError}
+          className="mb-4"
+        />
         
         {/* Основной контент без лишних карточек */}
         <div className="desktop-content-wrapper">

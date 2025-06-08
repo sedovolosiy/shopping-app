@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, ArrowRight } from 'lucide-react';
+import ErrorDisplay from '@/components/error-display';
+import { ErrorInfo, handleError, useErrorHandler, withRetry } from '@/lib/error-handling';
 
 interface UserLoginProps {
   onUserSelect: (userId: string) => void;
@@ -14,7 +16,8 @@ interface UserLoginProps {
 
 export default function UserLogin({ onUserSelect, isLoading = false }: UserLoginProps) {
   const [userId, setUserId] = useState<string>('');
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<ErrorInfo | null>(null);
+  const { handleErrorWithFeedback } = useErrorHandler();
 
   // Вычисляем, активна ли кнопка
   const isButtonDisabled = useMemo(() => {
@@ -30,40 +33,64 @@ export default function UserLogin({ onUserSelect, isLoading = false }: UserLogin
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedUserId = userId.trim();
+    
     if (!trimmedUserId) {
-      setError('Пожалуйста, введите ваш ID пользователя');
-      return;
-    }
-    if (trimmedUserId.includes('@') && !isValidEmail(trimmedUserId)) {
-      setError('Пожалуйста, введите действительный email адрес');
-      return;
-    }
-    setError('');
-    try {
-      // Проверяем или создаём пользователя
-      const res = await fetch('/api/user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: trimmedUserId })
+      setError({
+        message: 'Пожалуйста, введите ваш ID пользователя',
+        code: 'MISSING_REQUIRED_FIELD',
+        type: 'validation',
+        retryable: false,
       });
-      if (!res.ok) {
-        throw new Error('Ошибка при обращении к серверу');
-      }
-      const data = await res.json();
-      if (!data || !data.userId) {
-        setError('Не удалось получить ID пользователя');
-        return;
-      }
-      onUserSelect(data.userId);
+      return;
+    }
+    
+    if (trimmedUserId.includes('@') && !isValidEmail(trimmedUserId)) {
+      setError({
+        message: 'Пожалуйста, введите действительный email адрес',
+        code: 'INVALID_INPUT',
+        type: 'validation',
+        retryable: false,
+      });
+      return;
+    }
+    
+    setError(null);
+    
+    try {
+      await withRetry(async () => {
+        // Проверяем или создаём пользователя
+        const res = await fetch('/api/user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: trimmedUserId })
+        });
+        
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        
+        const data = await res.json();
+        if (!data || !data.userId) {
+          throw new Error('Invalid response from server');
+        }
+        
+        onUserSelect(data.userId);
+      }, 3, 1000);
     } catch (err) {
-      setError('Ошибка при обращении к серверу');
+      const errorInfo = handleErrorWithFeedback(err);
+      setError(errorInfo);
     }
   };
 
   const handleQuickSelect = (quickUserId: string) => {
     setUserId(quickUserId);
-    setError(''); // Очищаем ошибки при быстром выборе
+    setError(null); // Очищаем ошибки при быстром выборе
     onUserSelect(quickUserId);
+  };
+
+  const handleRetry = () => {
+    setError(null);
+    handleSubmit(new Event('submit') as any);
   };
 
   return (
@@ -80,6 +107,14 @@ export default function UserLogin({ onUserSelect, isLoading = false }: UserLogin
         </CardHeader>
         
         <CardContent className="px-5 pb-6 space-y-6">
+          {/* Error Display */}
+          <ErrorDisplay 
+            error={error} 
+            onRetry={error?.retryable ? handleRetry : undefined}
+            onDismiss={() => setError(null)}
+            compact
+          />
+          
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="form-input-group">
               <Label htmlFor="userId" className="form-label">ID пользователя</Label>
@@ -90,14 +125,11 @@ export default function UserLogin({ onUserSelect, isLoading = false }: UserLogin
                 value={userId}
                 onChange={(e) => {
                   setUserId(e.target.value);
-                  setError('');
+                  setError(null);
                 }}
                 disabled={isLoading}
-                className={`form-input ${error ? 'border-red-500 focus:border-red-500' : ''} dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400`}
+                className={`form-input ${error?.type === 'validation' ? 'border-red-500 focus:border-red-500' : ''} dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400`}
               />
-              {error && (
-                <p className="text-sm text-red-500 mt-1">{error}</p>
-              )}
               {userId.trim().length > 0 && (
                 <p className="text-xs text-muted-foreground">
                   Символов введено: {userId.trim().length}

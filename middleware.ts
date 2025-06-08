@@ -9,13 +9,11 @@ export function middleware(request: NextRequest) {
 
   // Check if Gemini API key exists for AI endpoint
   if (request.nextUrl.pathname === '/api/shopping-list' && request.method === 'POST') {
-    const hasKey = process.env.GOOGLE_GEMINI_API_KEY?.length > 0
+    const hasKey = (process.env.GOOGLE_GEMINI_API_KEY?.length ?? 0) > 0
     console.log(`[MIDDLEWARE] Gemini API key available: ${hasKey ? 'Yes' : 'No'}`)
     
     if (!hasKey) {
       console.warn('[MIDDLEWARE] Google Gemini API key not configured')
-      // Could return warning header but allowing request to proceed to use fallback
-      // return NextResponse.json({ error: 'API key not configured' }, { status: 503 })
     }
   }
 

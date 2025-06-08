@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { ListPlus, ArrowLeft, X } from "lucide-react";
 import { useSwipeable } from "react-swipeable"; // We'll need to install this package
 import { useDevice } from "@/components/device-detector";
+import ErrorDisplay from "@/components/error-display";
+import { ErrorInfo } from "@/lib/error-handling";
 
 // Types for client props
 interface MainClientContentProps {
@@ -15,11 +17,13 @@ interface MainClientContentProps {
   isOptimized: boolean;
   isLoading: boolean;
   isAIProcessed: boolean;
-  error: string | null;
+  error: ErrorInfo | null;
   renderCurrentView: () => React.ReactNode;
   handleReset: () => void;
   showForm: boolean;
   optimizedItems: any[];
+  onRetryError?: () => void;
+  onDismissError?: () => void;
 }
 
 const MainClientContent: React.FC<MainClientContentProps> = ({
@@ -32,6 +36,8 @@ const MainClientContent: React.FC<MainClientContentProps> = ({
   handleReset,
   showForm,
   optimizedItems,
+  onRetryError,
+  onDismissError,
 }) => {
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -153,19 +159,13 @@ const MainClientContent: React.FC<MainClientContentProps> = ({
           </motion.div>
         )}
 
-        {/* Error message with touch-friendly dismiss */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md flex justify-between items-start"
-          >
-            <p className="text-red-700 text-sm">{error}</p>
-            <button className="text-red-700" onClick={() => {}}>
-              <X className="h-4 w-4" />
-            </button>
-          </motion.div>
-        )}
+        {/* Error message with ErrorDisplay component */}
+        <ErrorDisplay 
+          error={error} 
+          onRetry={error?.retryable && onRetryError ? onRetryError : undefined}
+          onDismiss={onDismissError}
+          className="mb-4"
+        />
 
         <AnimatePresence mode="wait">
           {!isLoading && (appState !== "optimized" || (isOptimized && optimizedItems.length > 0)) && (

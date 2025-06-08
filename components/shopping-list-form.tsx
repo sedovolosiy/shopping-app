@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShoppingCart, Store as StoreIcon } from 'lucide-react'; // Renamed Store to StoreIcon to avoid conflict
 import { useDevice } from '@/components/device-detector';
-// import { StoreType } from '@/lib/types'; // This might need to be updated or augmented as StoreType might be a string literal union
 
 // Define a type for the store object fetched from the API
 interface Store {

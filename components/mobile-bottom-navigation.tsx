@@ -2,18 +2,16 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Home, ListPlus, ShoppingCart, Settings, Filter } from "lucide-react";
+import { Home, ListPlus, ShoppingCart, Settings } from "lucide-react";
 
 interface BottomNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  onFilterClick?: () => void;
 }
 
 const MobileBottomNavigation: React.FC<BottomNavigationProps> = ({ 
   activeTab, 
-  onTabChange,
-  onFilterClick 
+  onTabChange
 }) => {
   const tabs = [
     { id: "home", label: "Главная", icon: <Home className="h-5 w-5" /> },
@@ -24,20 +22,6 @@ const MobileBottomNavigation: React.FC<BottomNavigationProps> = ({
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-100 z-30">
-      {/* Filter button (floating above the navigation) */}
-      {onFilterClick && (
-        <div className="absolute top-0 right-4 transform -translate-y-1/2">
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-white shadow-md"
-            onClick={onFilterClick}
-            aria-label="Filters"
-          >
-            <Filter className="h-5 w-5" />
-          </motion.button>
-        </div>
-      )}
-
       {/* Navigation tabs */}
       <div className="flex justify-around items-center h-16">
         {tabs.map((tab) => (

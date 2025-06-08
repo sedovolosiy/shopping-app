@@ -1,7 +1,9 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Import mobile scroll fixes */
+@import './mobile-scroll-fixes.css';
 
 @layer base {
   :root {

@@ -84,7 +84,7 @@ const MainClientContent: React.FC<MainClientContentProps> = ({
   }, [appState]);
 
   return (
-    <div {...swipeHandlers}>
+    <div {...swipeHandlers} className="mobile-main-container">
       {/* Pull-to-refresh indicator - ONLY show on mobile/tablet */}
       {!isDesktop && (
         <AnimatePresence>
@@ -122,7 +122,16 @@ const MainClientContent: React.FC<MainClientContentProps> = ({
         )}
       </AnimatePresence>
 
-      <main className={`${!isDesktop ? 'container mx-auto px-4 py-6 space-y-6' : ''} relative min-h-[calc(100vh-4rem)]`}>
+      <main 
+        className={`${!isDesktop ? 'container mx-auto px-4 py-6 space-y-6' : ''} relative`}
+        style={{
+          minHeight: !isDesktop ? 'calc(100vh - 4rem)' : 'auto',
+          maxHeight: !isDesktop ? 'calc(100vh - 5rem)' : 'none',
+          overflowY: !isDesktop ? 'auto' : 'visible',
+          WebkitOverflowScrolling: 'touch',
+          paddingBottom: !isDesktop ? '2rem' : '0'
+        }}
+      >
         {/* Mobile app header with back button for nested views - ONLY show on mobile/tablet */}
         {!isDesktop && appState !== "login" && (
           <motion.div
@@ -169,7 +178,11 @@ const MainClientContent: React.FC<MainClientContentProps> = ({
 
         <AnimatePresence mode="wait">
           {!isLoading && (appState !== "optimized" || (isOptimized && optimizedItems.length > 0)) && (
-            <motion.div key={appState} {...pageTransition} className="screen-flow">
+            <motion.div 
+              key={appState} 
+              {...pageTransition} 
+              className={`screen-flow ${!isDesktop ? 'mobile-scrollable-content' : ''}`}
+            >
               {renderCurrentView()}
             </motion.div>
           )}

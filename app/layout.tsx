@@ -6,6 +6,7 @@ import ServiceWorkerRegister from '@/app/service-worker-register';
 import DeviceProvider from '@/components/device-detector';
 import './globals.css'
 import './mobile-styles.css'
+import './mobile-scroll-fixes.css'
 import './tablet-styles.css'
 import './intermediate-styles.css'
 import './desktop-styles.css'
@@ -15,7 +16,7 @@ const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 export const metadata: Metadata = {
   title: 'Умный помощник для покупок',
   description: 'Приложение для оптимизации маршрута покупок в магазинах Lidl, Biedronka и Aldi',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, target-densitydpi=device-dpi',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover',
   themeColor: '#4f46e5',
   appleWebApp: {
     capable: true,

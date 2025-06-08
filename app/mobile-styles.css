@@ -1,8 +1,68 @@
 /* Mobile-first styles for Shopping Optimizer app */
 
+/* Mobile main container with bottom navigation spacing */
+.mobile-main-container {
+  @apply min-h-screen pb-20; /* Add bottom padding for navigation (80px) */
+}
+
+.mobile-content-area {
+  @apply min-h-[calc(100vh-5rem)] pb-4; /* Account for bottom nav height */
+}
+
+/* iPhone specific fixes for viewport height */
+@supports (height: 100dvh) {
+  .mobile-main-container {
+    min-height: 100dvh;
+  }
+  
+  .mobile-content-area {
+    min-height: calc(100dvh - 5rem);
+  }
+}
+
+/* iPhone 12 Pro specific fixes (390x844) */
+@media screen and (width: 390px) and (height: 844px) {
+  .mobile-main-container {
+    padding-bottom: 5rem !important; /* 80px for bottom nav */
+  }
+  
+  .screen-flow {
+    padding-bottom: 1rem !important;
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+  }
+  
+  /* Ensure saved lists are scrollable */
+  .saved-lists-container {
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+  }
+}
+
+/* General mobile scrolling improvements */
+@media (max-width: 768px) {
+  .mobile-scrollable-content {
+    max-height: calc(100vh - 5rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fix for bottom navigation overlap */
+  .mobile-content-with-nav {
+    padding-bottom: 5rem;
+  }
+  
+  /* Ensure SavedListsView container is scrollable */
+  .saved-lists-mobile-container {
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+    padding-bottom: 1rem;
+  }
+}
+
 /* Three screen flow styling */
 .screen-flow {
-  @apply flex flex-col gap-4 w-full max-w-md mx-auto;
+  @apply flex flex-col gap-4 w-full max-w-md mx-auto pb-4;
 }
 
 .screen-card {

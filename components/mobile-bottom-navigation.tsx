@@ -21,13 +21,13 @@ const MobileBottomNavigation: React.FC<BottomNavigationProps> = ({
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-100 z-30">
+    <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-100 z-30 safe-area-bottom">
       {/* Navigation tabs */}
-      <div className="flex justify-around items-center h-16">
+      <div className="flex justify-around items-center h-16 pb-safe">
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            className={`flex flex-col items-center justify-center flex-1 h-full relative ${
+            className={`flex flex-col items-center justify-center flex-1 h-full relative touch-target ${
               activeTab === tab.id ? "text-primary" : "text-gray-500"
             }`}
             onClick={() => onTabChange(tab.id)}

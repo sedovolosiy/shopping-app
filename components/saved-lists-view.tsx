@@ -142,17 +142,23 @@ export default function SavedListsView({
     ? "desktop-content-panel space-y-8" 
     : isTablet 
       ? "space-y-6 tablet-form-container"
-      : "space-y-6 w-full max-w-md mx-auto";
+      : "space-y-6 w-full max-w-md mx-auto pb-4 max-h-[calc(100vh-6rem)] overflow-y-auto";
 
   // Determine grid classes based on device  
   const gridClasses = isDesktop 
     ? "desktop-three-column" 
     : isTablet 
       ? "grid gap-4 md:grid-cols-2"
-      : "grid gap-4";
+      : "flex flex-col gap-4";
 
   return (
-    <div className={containerClasses}>
+    <div className={containerClasses} style={{
+      ...(!(isDesktop || isTablet) && {
+        maxHeight: 'calc(100vh - 6rem)',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch'
+      })
+    }}>
       {/* Header - адаптивная компоновка */}
       {isDesktop ? (
         // Desktop: заголовок и кнопки в одной строке

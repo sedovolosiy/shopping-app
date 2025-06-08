@@ -1,0 +1,100 @@
+/* Additional mobile fixes for scrolling issues */
+
+/* Safe area support for devices with notch */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* iPhone specific fixes for viewport height */
+@supports (height: 100dvh) {
+  .mobile-main-container {
+    min-height: 100dvh;
+  }
+  
+  .mobile-content-area {
+    min-height: calc(100dvh - 5rem);
+  }
+}
+
+/* iPhone 12 Pro specific fixes (390x844) */
+@media screen and (width: 390px) and (height: 844px) {
+  .mobile-main-container {
+    padding-bottom: 5rem !important; /* 80px for bottom nav */
+  }
+  
+  .screen-flow {
+    padding-bottom: 1rem !important;
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+  }
+  
+  /* Ensure saved lists are scrollable */
+  .saved-lists-container {
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+  }
+}
+
+/* Additional iPhone viewport sizes */
+@media screen and (width: 375px) and (height: 812px), /* iPhone X/XS */
+       screen and (width: 414px) and (height: 896px), /* iPhone XR/11 */
+       screen and (width: 375px) and (height: 667px), /* iPhone 6/7/8 */
+       screen and (width: 414px) and (height: 736px)  /* iPhone 6+/7+/8+ */ {
+  
+  .mobile-main-container {
+    padding-bottom: 5rem !important;
+  }
+  
+  .screen-flow {
+    max-height: calc(100vh - 5rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* General mobile scrolling improvements */
+@media (max-width: 768px) {
+  .mobile-scrollable-content {
+    max-height: calc(100vh - 5rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fix for bottom navigation overlap */
+  .mobile-content-with-nav {
+    padding-bottom: 5rem;
+  }
+  
+  /* Ensure SavedListsView container is scrollable */
+  .saved-lists-mobile-container {
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+    padding-bottom: 1rem;
+  }
+  
+  /* Fix for main content area */
+  .mobile-main-container {
+    position: relative;
+    min-height: 100vh;
+    padding-bottom: 5rem; /* space for bottom navigation */
+  }
+  
+  /* Ensure content can scroll properly */
+  .mobile-main-container > main {
+    max-height: calc(100vh - 5rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Specific fix for iPhone safari address bar issue */
+@media (max-width: 768px) and (max-height: 1024px) {
+  .mobile-main-container {
+    min-height: 100vh;
+    min-height: 100dvh; /* fallback for browsers that support it */
+  }
+}

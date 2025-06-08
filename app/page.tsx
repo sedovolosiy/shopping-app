@@ -739,7 +739,7 @@ export default function HomePage() {
       <OrientationHandler forcePortrait={false}>
         <DeviceRender 
           mobile={
-            <div className="min-h-screen">
+            <div className="mobile-main-container" style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}>
               <MainClientContent
                 appState={appState}
                 isOptimized={isOptimized}
@@ -818,7 +818,7 @@ export default function HomePage() {
             </Suspense>
           }
           default={
-            <div className="min-h-screen">
+            <div className="mobile-main-container">
               <MainClientContent
                 appState={appState}
                 isOptimized={isOptimized}

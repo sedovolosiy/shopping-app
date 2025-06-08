@@ -133,7 +133,7 @@ const MainClientContent: React.FC<MainClientContentProps> = ({
         }}
       >
         {/* Mobile app header with back button for nested views - ONLY show on mobile/tablet */}
-        {!isDesktop && appState !== "login" && (
+        {!isDesktop && appState !== "login" && appState !== "saved_lists" && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}

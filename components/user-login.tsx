@@ -161,7 +161,7 @@ export default function UserLogin({ onUserSelect, isLoading = false }: UserLogin
             <div className="flex justify-center">
               <Button
                 variant="outline"
-                className="mobile-button mobile-button-outline h-12 w-40 text-base font-semibold shadow-sm border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"
+                className="mobile-button mobile-button-outline h-12 w-40 text-base font-semibold shadow-sm border-gray-300 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white dark:hover:bg-gray-700 transition-colors duration-150"
                 onClick={() => handleQuickSelect('guest-user')}
                 disabled={isLoading}
               >
@@ -170,11 +170,6 @@ export default function UserLogin({ onUserSelect, isLoading = false }: UserLogin
             </div>
           </div>
           
-          <div className="text-center">
-            <p className="text-xs text-gray-500 mt-4">
-              Ваши списки покупок будут сохранены под этим ID
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>

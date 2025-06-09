@@ -246,28 +246,7 @@ export default function SavedListsView({
         </motion.div>
       )}
 
-      {/* Create New Button - Mobile-Optimized */}
-      <div className="flex justify-center mb-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <Button
-            onClick={onCreateNew}
-            className={`bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 font-medium flex items-center gap-2 ${
-              isDesktop 
-                ? 'px-8 py-4 text-lg h-14' 
-                : 'px-5 py-3 h-11 text-sm'
-            }`}
-          >
-            <Plus className={isDesktop ? 'h-5 w-5' : 'h-4 w-4'} />
-            <span>Создать новый список</span>
-          </Button>
-        </motion.div>
-      </div>
+
 
       {/* Saved Lists */}
       <div className={gridClasses}>
@@ -281,22 +260,39 @@ export default function SavedListsView({
               <div className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 p-8 rounded-3xl mb-6">
                 <ShoppingCart className="h-16 w-16 text-gray-400 dark:text-gray-500" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                 Пока нет списков покупок
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
-                Создайте свой первый список покупок, чтобы начать планировать походы в магазин более эффективно
+              <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md">
+                Создайте свой первый список, чтобы начать планировать
               </p>
               <Button
                 onClick={onCreateNew}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 rounded-2xl px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-[280px] bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 rounded-2xl h-14 text-lg shadow-lg hover:shadow-xl transition-all duration-300 font-medium"
               >
-                <Plus className="mr-2 h-5 w-5" />
-                Создать первый список
+                <Plus className="h-5 w-5 mr-2" />
+                Создать список покупок
               </Button>
             </motion.div>
           ) : (
-            filteredLists.map((list) => (
+            <>
+              {/* Create New Button when lists exist */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="col-span-full flex justify-center mb-6"
+              >
+                <Button
+                  onClick={onCreateNew}
+                  className="w-[280px] bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 rounded-2xl h-12 shadow-lg hover:shadow-xl transition-all duration-300 font-medium"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Создать список покупок
+                </Button>
+              </motion.div>
+              
+              {filteredLists.map((list) => (
               <motion.div
                 key={list.id}
                 layout
@@ -308,110 +304,12 @@ export default function SavedListsView({
               <Card className={`cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 border-0 shadow-lg hover:shadow-2xl bg-gradient-to-br from-white via-gray-50/50 to-blue-50/30 dark:from-gray-800 dark:via-gray-850 dark:to-gray-900 rounded-2xl overflow-hidden backdrop-blur-sm ${
                 isDesktop ? 'p-2' : 'p-1'
               }`} onClick={() => onSelectList(list)}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <div className="flex flex-col flex-1">
-                    <CardTitle className={`font-bold flex items-center gap-3 ${
-                      isDesktop ? 'text-xl' : 'text-lg'
-                    }`}>
-                      <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-xl">
-                        <ShoppingCart className="text-white h-4 w-4" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-gray-900 dark:text-white truncate max-w-[200px]">
-                          {list.name}
-                        </span>
-                        {isClient && (
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-sm font-normal text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 rounded-full px-3 py-1">
-                              {getStoreDisplayName(list.storeId)}
-                            </span>
-                            <span className={`text-xs font-normal rounded-full px-2 py-1 ${
-                              list.status === 'completed' 
-                                ? 'text-green-700 bg-green-100 dark:bg-green-900/30 dark:text-green-300' 
-                                : 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-300'
-                            }`}>
-                              {list.status === 'completed' ? 'Выполнен' : 'Активен'}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </CardTitle>
-                  </div>
-                  <div className="flex space-x-2">
-                    {onDeleteList && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setListToDelete(list.id);
-                        }}
-                        className="text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 rounded-xl transition-all duration-200"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center text-gray-600 dark:text-gray-400">
-                      <Package className="mr-2 h-4 w-4" />
-                      <span className="font-medium">{list.items.length} товаров</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <div className="bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded-full h-2.5 w-20 overflow-hidden">
-                        <div 
-                          className="bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 h-2.5 rounded-full transition-all duration-700 ease-out shadow-sm" 
-                          style={{ 
-                            width: `${list.items.length > 0 ? (list.items.filter(item => item.purchased).length / list.items.length) * 100 : 0}%` 
-                          }}
-                        ></div>
-                      </div>
-                      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 min-w-[2rem] bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
-                        {list.items.filter(item => item.purchased).length}/{list.items.length}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <div className="flex flex-wrap gap-2">
-                      {list.items.slice(0, 3).map((item) => (
-                        <Badge 
-                          key={item.id} 
-                          variant="outline" 
-                          className="text-xs bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-gray-750 border-gray-200 dark:border-gray-600 rounded-full px-3 py-1.5 font-medium shadow-sm hover:shadow-md transition-all duration-200"
-                        >
-                          {item.name.length > 12 ? item.name.substring(0, 12) + '...' : item.name}
-                        </Badge>
-                      ))}
-                      {list.items.length > 3 && (
-                        <Badge 
-                          variant="outline" 
-                          className="text-xs bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900 dark:to-purple-900 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 rounded-full px-3 py-1.5 font-semibold shadow-sm"
-                        >
-                          +{list.items.length - 3}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-full px-3 py-1.5">
-                      <Clock className="mr-1.5 h-3 w-3" />
-                      <span>{formatDate(list.createdAt)}</span>
-                    </div>
-                    <div className="flex items-center bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/30 dark:to-orange-900/30 text-yellow-700 dark:text-yellow-400 rounded-full px-3 py-1.5">
-                      <Star className="mr-1.5 h-3 w-3 fill-current" />
-                      <span className="font-medium">Избранный</span>
-                    </div>
-                  </div>
-                </CardContent>
+                {/* ...existing card content... */}
               </Card>
             </motion.div>
-          ))
-        )}
+          ))}
+            </>
+          )}
         </AnimatePresence>
       </div>
 

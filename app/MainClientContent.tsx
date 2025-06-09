@@ -233,27 +233,6 @@ const MainClientContent: React.FC<MainClientContentProps> = ({
                 />
               )}
             </AnimatePresence>
-
-            <motion.div
-              className={`bottom-sheet ${
-                isBottomSheetOpen ? "bottom-sheet-visible" : "bottom-sheet-hidden"
-              }`}
-              animate={{ y: isBottomSheetOpen ? 0 : "100%" }}
-              transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            >
-              <div className="bottom-sheet-handle" />
-              <div className="p-5">
-                <h3 className="text-lg font-medium mb-4">Фильтры и настройки</h3>
-                {/* Filter and settings controls would go here */}
-                <Button
-                  variant="outline"
-                  className="w-full mt-4"
-                  onClick={() => setIsBottomSheetOpen(false)}
-                >
-                  Закрыть
-                </Button>
-              </div>
-            </motion.div>
           </>
         )}
       </main>

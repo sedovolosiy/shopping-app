@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Calendar, Package, Plus, User, Trash2 } from 'lucide-react';
+import { ShoppingCart, Calendar, Package, Plus, User, Trash2, Star, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDevice } from '@/components/device-detector';
 import {
@@ -130,8 +130,22 @@ export default function SavedListsView({
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Загрузка ваших списков...</p>
+          <motion.div 
+            className="relative mx-auto mb-6"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          >
+            <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div>
+            <div className="w-16 h-16 border-4 border-transparent border-t-blue-500 rounded-full absolute top-0 left-0 animate-spin"></div>
+          </motion.div>
+          <motion.p 
+            className="text-muted-foreground font-medium"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            Загрузка ваших списков...
+          </motion.p>
         </div>
       </div>
     );
@@ -142,7 +156,7 @@ export default function SavedListsView({
     ? "desktop-content-panel space-y-8" 
     : isTablet 
       ? "space-y-6 tablet-form-container"
-      : "space-y-6 w-full max-w-md mx-auto pb-4 max-h-[calc(100vh-6rem)] overflow-y-auto";
+      : "space-y-4 w-full max-w-md mx-auto pb-20 px-4 max-h-[calc(100vh-6rem)] overflow-y-auto";
 
   // Determine grid classes based on device  
   const gridClasses = isDesktop 
@@ -159,26 +173,60 @@ export default function SavedListsView({
         WebkitOverflowScrolling: 'touch'
       })
     }}>
-      {/* Header */}
-      <div className="text-center">
-        <h1 className={`font-bold text-gray-900 dark:text-white flex items-center justify-center ${
-          isDesktop ? 'desktop-heading' : 'text-lg sm:text-xl'
-        }`}>
-          <User className={`mr-2 text-blue-600 ${
-            isDesktop ? 'h-8 w-8' : 'h-5 w-5 sm:h-6 sm:w-6'
-          }`} />
-          <span className="leading-tight">Мои списки покупок</span>
-        </h1>
-      </div>
+      {/* Modern Header */}
+      <motion.div 
+        className="text-center mb-8"
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        <motion.h1 
+          className={`font-bold text-gray-900 dark:text-white flex items-center justify-center ${
+            isDesktop ? 'text-3xl' : 'text-2xl'
+          }`}
+          whileHover={{ scale: 1.02 }}
+          transition={{ type: "spring", stiffness: 400 }}
+        >
+          <motion.div 
+            className={`bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 p-2 rounded-2xl mr-3 shadow-lg ${
+              isDesktop ? 'p-3' : 'p-2'
+            }`}
+            whileHover={{ rotate: 5 }}
+            transition={{ type: "spring", stiffness: 400 }}
+          >
+            <User className={`text-white ${
+              isDesktop ? 'h-8 w-8' : 'h-6 w-6'
+            }`} />
+          </motion.div>
+          <span className="bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
+            Мои списки покупок
+          </span>
+        </motion.h1>
+        <motion.p 
+          className="text-gray-600 dark:text-gray-400 mt-2 text-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          Управляйте своими покупками эффективно
+        </motion.p>
+      </motion.div>
 
       {/* Store Filter */}
       {isClient && uniqueStores.length > 1 && (
-        <div className={`flex flex-wrap ${isDesktop ? 'gap-3' : 'gap-2'}`}>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className={`flex flex-wrap justify-center ${isDesktop ? 'gap-3' : 'gap-2'} mb-6`}
+        >
           <Button
             variant={selectedStore === 'all' ? 'default' : 'outline'}
             size={isDesktop ? 'default' : 'sm'}
             onClick={() => setSelectedStore('all')}
-            className={isDesktop ? 'desktop-button-secondary' : ''}
+            className={`rounded-full transition-all duration-200 hover:scale-105 ${
+              isDesktop ? 'px-6' : 'px-4'
+            } ${selectedStore === 'all' ? 'shadow-lg' : ''}`}
           >
             Все магазины
           </Button>
@@ -188,77 +236,105 @@ export default function SavedListsView({
               variant={selectedStore === store ? 'default' : 'outline'}
               size={isDesktop ? 'default' : 'sm'}
               onClick={() => setSelectedStore(store)}
-              className={isDesktop ? 'desktop-button-secondary' : ''}
+              className={`rounded-full transition-all duration-200 hover:scale-105 ${
+                isDesktop ? 'px-6' : 'px-4'
+              } ${selectedStore === store ? 'shadow-lg' : ''}`}
             >
               {getStoreDisplayName(store)}
             </Button>
           ))}
-        </div>
+        </motion.div>
       )}
 
-      {/* Create New Button */}
-      <Card className={`border-dashed border-2 hover:border-blue-300 transition-colors cursor-pointer ${
-        isDesktop ? 'desktop-card hover:shadow-lg' : ''
-      }`} onClick={onCreateNew}>
-        <CardContent className={`flex flex-col items-center justify-center ${
-          isDesktop ? 'py-12' : 'py-8'
-        }`}>
-          <Plus className={`text-muted-foreground mb-4 ${
-            isDesktop ? 'h-16 w-16' : 'h-12 w-12'
-          }`} />
-          <h3 className={`font-semibold text-muted-foreground ${
-            isDesktop ? 'desktop-subheading' : 'text-lg'
-          }`}>
-            Создать новый список
-          </h3>
-          <p className={`text-muted-foreground text-center mt-2 ${
-            isDesktop ? 'desktop-text' : 'text-sm'
-          }`}>
-            Начните с создания нового списка покупок
-          </p>
-        </CardContent>
-      </Card>
+      {/* Create New Button - Mobile-Optimized */}
+      <div className="flex justify-center mb-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Button
+            onClick={onCreateNew}
+            className={`bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 font-medium flex items-center gap-2 ${
+              isDesktop 
+                ? 'px-8 py-4 text-lg h-14' 
+                : 'px-5 py-3 h-11 text-sm'
+            }`}
+          >
+            <Plus className={isDesktop ? 'h-5 w-5' : 'h-4 w-4'} />
+            <span>Создать новый список</span>
+          </Button>
+        </motion.div>
+      </div>
 
       {/* Saved Lists */}
       <div className={gridClasses}>
         <AnimatePresence>
-          {filteredLists.map((list) => (
+          {filteredLists.length === 0 ? (
             <motion.div
-              key={list.id}
-              layout
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
+              className="col-span-full flex flex-col items-center justify-center py-16 text-center"
             >
-              <Card className={`cursor-pointer transition-shadow ${
-                isDesktop 
-                  ? 'desktop-card hover:shadow-xl' 
-                  : 'hover:shadow-lg'
-              }`}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <div className="flex flex-col">
-                    <CardTitle className={`font-semibold flex items-center gap-2 ${
-                      isDesktop ? 'desktop-subheading' : 'text-xl'
+              <div className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 p-8 rounded-3xl mb-6">
+                <ShoppingCart className="h-16 w-16 text-gray-400 dark:text-gray-500" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                Пока нет списков покупок
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
+                Создайте свой первый список покупок, чтобы начать планировать походы в магазин более эффективно
+              </p>
+              <Button
+                onClick={onCreateNew}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 rounded-2xl px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <Plus className="mr-2 h-5 w-5" />
+                Создать первый список
+              </Button>
+            </motion.div>
+          ) : (
+            filteredLists.map((list) => (
+              <motion.div
+                key={list.id}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+              <Card className={`cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 border-0 shadow-lg hover:shadow-2xl bg-gradient-to-br from-white via-gray-50/50 to-blue-50/30 dark:from-gray-800 dark:via-gray-850 dark:to-gray-900 rounded-2xl overflow-hidden backdrop-blur-sm ${
+                isDesktop ? 'p-2' : 'p-1'
+              }`} onClick={() => onSelectList(list)}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <div className="flex flex-col flex-1">
+                    <CardTitle className={`font-bold flex items-center gap-3 ${
+                      isDesktop ? 'text-xl' : 'text-lg'
                     }`}>
-                      {list.name}
-                      {isClient && (
-                        <>
-                          <span className={`font-normal text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded px-2 py-0.5 ml-2 ${
-                            isDesktop ? 'desktop-text' : 'text-base'
-                          }`}>
-                            {getStoreDisplayName(list.storeId)}
-                          </span>
-                          {/* Лейбл статуса для отладки */}
-                          <span className={`font-normal rounded px-2 py-0.5 ml-2 text-xs ${
-                            list.status === 'completed' 
-                              ? 'text-green-700 bg-green-100 dark:bg-green-900/30 dark:text-green-300' 
-                              : 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-300'
-                          }`}>
-                            {list.status === 'completed' ? 'Выполнен' : 'Активен'}
-                          </span>
-                        </>
-                      )}
+                      <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-xl">
+                        <ShoppingCart className="text-white h-4 w-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-gray-900 dark:text-white truncate max-w-[200px]">
+                          {list.name}
+                        </span>
+                        {isClient && (
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-sm font-normal text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 rounded-full px-3 py-1">
+                              {getStoreDisplayName(list.storeId)}
+                            </span>
+                            <span className={`text-xs font-normal rounded-full px-2 py-1 ${
+                              list.status === 'completed' 
+                                ? 'text-green-700 bg-green-100 dark:bg-green-900/30 dark:text-green-300' 
+                                : 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-300'
+                            }`}>
+                              {list.status === 'completed' ? 'Выполнен' : 'Активен'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </CardTitle>
                   </div>
                   <div className="flex space-x-2">
@@ -270,83 +346,94 @@ export default function SavedListsView({
                           e.stopPropagation();
                           setListToDelete(list.id);
                         }}
-                        className={`text-red-500 hover:text-red-700 hover:bg-red-50 ${
-                          isDesktop ? 'h-10 w-10' : ''
-                        }`}
+                        className="text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 rounded-xl transition-all duration-200"
                       >
-                        <Trash2 className={isDesktop ? 'h-5 w-5' : 'h-4 w-4'} />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
                 </CardHeader>
-                <CardContent onClick={() => onSelectList(list)}>
-                  <div className="flex items-center justify-between">
-                    <div className={`flex items-center text-muted-foreground ${
-                      isDesktop ? 'desktop-text' : 'text-sm'
-                    }`}>
-                      <Package className={`mr-1 ${isDesktop ? 'h-5 w-5' : 'h-4 w-4'}`} />
-                      {list.items.length} товаров
+                <CardContent className="pt-0">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center text-gray-600 dark:text-gray-400">
+                      <Package className="mr-2 h-4 w-4" />
+                      <span className="font-medium">{list.items.length} товаров</span>
                     </div>
                     
-                    <div className={`flex items-center ${
-                      isDesktop ? 'desktop-text' : 'text-sm'
-                    }`}>
-                      <div className={`bg-gray-200 rounded-full h-2 mr-2 ${
-                        isDesktop ? 'w-20' : 'w-16'
-                      }`}>
+                    <div className="flex items-center gap-2">
+                      <div className="bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded-full h-2.5 w-20 overflow-hidden">
                         <div 
-                          className="bg-green-600 h-2 rounded-full" 
+                          className="bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 h-2.5 rounded-full transition-all duration-700 ease-out shadow-sm" 
                           style={{ 
                             width: `${list.items.length > 0 ? (list.items.filter(item => item.purchased).length / list.items.length) * 100 : 0}%` 
                           }}
                         ></div>
                       </div>
-                      <span className={`text-muted-foreground ${
-                        isDesktop ? 'desktop-small-text' : 'text-xs'
-                      }`}>
+                      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 min-w-[2rem] bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
                         {list.items.filter(item => item.purchased).length}/{list.items.length}
                       </span>
                     </div>
                   </div>
 
-                  <div className="mt-3">
-                    <div className="flex flex-wrap gap-1">
+                  <div className="mb-4">
+                    <div className="flex flex-wrap gap-2">
                       {list.items.slice(0, 3).map((item) => (
-                        <Badge key={item.id} variant="outline" className={
-                          isDesktop ? 'desktop-small-text' : 'text-xs'
-                        }>
-                          {item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name}
+                        <Badge 
+                          key={item.id} 
+                          variant="outline" 
+                          className="text-xs bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-gray-750 border-gray-200 dark:border-gray-600 rounded-full px-3 py-1.5 font-medium shadow-sm hover:shadow-md transition-all duration-200"
+                        >
+                          {item.name.length > 12 ? item.name.substring(0, 12) + '...' : item.name}
                         </Badge>
                       ))}
                       {list.items.length > 3 && (
-                        <Badge variant="outline" className={
-                          isDesktop ? 'desktop-small-text' : 'text-xs'
-                        }>
+                        <Badge 
+                          variant="outline" 
+                          className="text-xs bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900 dark:to-purple-900 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 rounded-full px-3 py-1.5 font-semibold shadow-sm"
+                        >
                           +{list.items.length - 3}
                         </Badge>
                       )}
                     </div>
                   </div>
 
-                  <div className={`flex items-center text-muted-foreground mt-2 ${
-                    isDesktop ? 'desktop-text' : 'text-sm'
-                  }`}>
-                    <ShoppingCart className={`mr-1 ${isDesktop ? 'h-5 w-5' : 'h-4 w-4'}`} />
-                    {isClient ? getStoreDisplayName(list.storeId) : 'Магазин'}
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-full px-3 py-1.5">
+                      <Clock className="mr-1.5 h-3 w-3" />
+                      <span>{formatDate(list.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/30 dark:to-orange-900/30 text-yellow-700 dark:text-yellow-400 rounded-full px-3 py-1.5">
+                      <Star className="mr-1.5 h-3 w-3 fill-current" />
+                      <span className="font-medium">Избранный</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
-          ))}
+          ))
+        )}
         </AnimatePresence>
       </div>
 
       {/* Завершённые списки */}
       {completedLists.length > 0 && (
-        <div className="mt-8">
-          <h3 className="font-semibold text-muted-foreground mb-2">
-            Завершённые списки
-          </h3>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-12"
+        >
+          <div className="flex items-center mb-6">
+            <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-2 rounded-xl mr-3">
+              <Package className="text-white h-4 w-4" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+              Завершённые списки
+            </h3>
+            <Badge variant="outline" className="ml-3 rounded-full">
+              {completedLists.length}
+            </Badge>
+          </div>
           <div className={gridClasses}>
             <AnimatePresence>
               {completedLists.map((list) => (
@@ -358,41 +445,51 @@ export default function SavedListsView({
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card className={`opacity-60 cursor-pointer transition-shadow ${
-                    isDesktop 
-                      ? 'desktop-card hover:shadow-xl' 
-                      : 'hover:shadow-lg'
+                  <Card className={`cursor-pointer transition-all duration-300 hover:scale-[1.01] hover:-translate-y-0.5 border-0 shadow-md hover:shadow-lg bg-gradient-to-br from-green-50/50 via-gray-50 to-emerald-50/30 dark:from-gray-900 dark:via-gray-850 dark:to-green-900/20 rounded-2xl overflow-hidden backdrop-blur-sm ${
+                    isDesktop ? 'p-2' : 'p-1'
                   }`}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <div className="flex flex-col">
-                        <CardTitle className={`font-semibold flex items-center gap-2 ${
-                          isDesktop ? 'desktop-subheading' : 'text-xl'
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                      <div className="flex flex-col flex-1">
+                        <CardTitle className={`font-bold flex items-center gap-3 ${
+                          isDesktop ? 'text-lg' : 'text-base'
                         }`}>
-                          {list.name}
-                          {isClient && (
-                            <span className={`font-normal text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded px-2 py-0.5 ml-2 ${
-                              isDesktop ? 'desktop-text' : 'text-base'
-                            }`}>
-                              {getStoreDisplayName(list.storeId)}
+                          <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-2 rounded-xl">
+                            <ShoppingCart className="text-white h-3 w-3" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-gray-700 dark:text-gray-300 truncate max-w-[200px]">
+                              {list.name}
                             </span>
-                          )}
+                            {isClient && (
+                              <span className="text-sm font-normal text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 rounded-full px-3 py-1 mt-1 w-fit">
+                                {getStoreDisplayName(list.storeId)}
+                              </span>
+                            )}
+                          </div>
                         </CardTitle>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center text-muted-foreground">
-                        <Package className="mr-1 h-4 w-4" />
-                        {list.items.length} товаров
+                    <CardContent className="pt-0">
+                      <div className="flex items-center text-gray-500 dark:text-gray-400 mb-3">
+                        <Package className="mr-2 h-4 w-4" />
+                        <span className="font-medium">{list.items.length} товаров выполнено</span>
                       </div>
-                      <div className="flex flex-wrap gap-1 mt-2">
+                      <div className="flex flex-wrap gap-2">
                         {list.items.slice(0, 3).map((item) => (
-                          <Badge key={item.id} variant="outline" className={isDesktop ? 'desktop-small-text' : 'text-xs'}>
-                            {item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name}
+                          <Badge 
+                            key={item.id} 
+                            variant="outline" 
+                            className="text-xs bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 rounded-full px-3 py-1.5 font-medium"
+                          >
+                            ✓ {item.name.length > 10 ? item.name.substring(0, 10) + '...' : item.name}
                           </Badge>
                         ))}
                         {list.items.length > 3 && (
-                          <Badge variant="outline" className={isDesktop ? 'desktop-small-text' : 'text-xs'}>
-                            +{list.items.length - 3}
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-800 dark:to-emerald-800 border-green-300 dark:border-green-600 text-green-800 dark:text-green-200 rounded-full px-3 py-1.5 font-semibold"
+                          >
+                            +{list.items.length - 3} выполнено
                           </Badge>
                         )}
                       </div>
@@ -402,7 +499,7 @@ export default function SavedListsView({
               ))}
             </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Delete Confirmation Dialog */}
@@ -414,21 +511,47 @@ export default function SavedListsView({
           }
         }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl border-0 shadow-2xl bg-white dark:bg-gray-900">
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить список покупок?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="bg-red-100 dark:bg-red-900/30 p-2 rounded-xl">
+                <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400" />
+              </div>
+              <AlertDialogTitle className="text-lg font-bold">
+                Удалить список покупок?
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
               Это действие нельзя будет отменить. Список покупок будет удален навсегда.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Отмена</AlertDialogCancel>
+          <AlertDialogFooter className="gap-3">
+            <AlertDialogCancel 
+              disabled={isDeleting}
+              className="rounded-xl border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
+              Отмена
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteList}
               disabled={isDeleting}
-              className={`${isDeleting ? 'bg-red-300' : 'bg-red-500 hover:bg-red-600'}`}
+              className={`rounded-xl ${
+                isDeleting 
+                  ? 'bg-red-300 dark:bg-red-800' 
+                  : 'bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700'
+              } text-white shadow-lg hover:shadow-xl transition-all duration-200`}
             >
-              {isDeleting ? 'Удаление...' : 'Удалить'}
+              {isDeleting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                  Удаление...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Удалить
+                </>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

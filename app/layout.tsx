@@ -6,6 +6,7 @@ import ServiceWorkerRegister from '@/app/service-worker-register';
 import DeviceProvider from '@/components/device-detector';
 import './globals.css'
 import './mobile-styles.css'
+import './mobile-scroll-fixes.css'
 import './tablet-styles.css'
 import './intermediate-styles.css'
 import './desktop-styles.css'
@@ -15,7 +16,7 @@ const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 export const metadata: Metadata = {
   title: 'Умный помощник для покупок',
   description: 'Приложение для оптимизации маршрута покупок в магазинах Lidl, Biedronka и Aldi',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, target-densitydpi=device-dpi',
+  viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover',
   themeColor: '#4f46e5',
   appleWebApp: {
     capable: true,
@@ -40,6 +41,29 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="Умный помощник для покупок" />
         <meta name="application-name" content="Помощник" />
+        
+        {/* Дополнительные meta теги для мобильных устройств */}
+        <meta name="apple-touch-fullscreen" content="yes" />
+        <meta name="HandheldFriendly" content="True" />
+        <meta name="MobileOptimized" content="320" />
+        <meta name="theme-color" content="#4f46e5" />
+        <meta name="msapplication-TileColor" content="#4f46e5" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        
+        {/* Предотвращаем zoom на inputs в iOS */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @media screen and (-webkit-min-device-pixel-ratio:0) {
+              select, textarea, input[type="text"], input[type="password"], 
+              input[type="datetime"], input[type="datetime-local"], 
+              input[type="date"], input[type="month"], input[type="time"], 
+              input[type="week"], input[type="number"], input[type="email"], 
+              input[type="url"], input[type="search"], input[type="tel"] {
+                font-size: 16px !important;
+              }
+            }
+          `
+        }} />
         
         {/* Apple touch icons */}
         <link rel="apple-touch-icon" href="/icons/apple-icon-180.png" />

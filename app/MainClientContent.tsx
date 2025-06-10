@@ -122,7 +122,7 @@ const MainClientContent: React.FC<MainClientContentProps> = ({
         )}
       </AnimatePresence>
 
-      <main className={`${!isDesktop ? 'container mx-auto px-4 py-6 space-y-6' : ''} relative min-h-[calc(100vh-4rem)]`}>
+      <main className={`${!isDesktop ? 'container mx-auto px-4 py-6 space-y-6 smooth-scroll mobile-scroll-container' : ''} relative min-h-[calc(100vh-4rem)] no-bounce`}>
         {/* Mobile app header with back button for nested views - ONLY show on mobile/tablet */}
         {!isDesktop && appState !== "login" && (
           <motion.div

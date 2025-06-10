@@ -21,7 +21,7 @@ const MobileBottomNavigation: React.FC<BottomNavigationProps> = ({
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-100 z-30">
+    <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-100 z-50 mobile-bottom-navigation">
       {/* Navigation tabs */}
       <div className="flex justify-around items-center h-16">
         {tabs.map((tab) => (

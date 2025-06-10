@@ -1,0 +1,339 @@
+/* Mobile scroll fixes для Shopping Optimizer */
+
+/* Основные исправления для мобильной прокрутки */
+@media (max-width: 767px) {
+  /* Исправляем высоту viewport и прокрутку */
+  html {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+  }
+
+  /* Основной контейнер приложения */
+  #__next {
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* Исправляем прокрутку для main контента */
+  main {
+    min-height: calc(100vh - 4rem);
+    padding-bottom: 10rem; /* Дополнительное пространство для sticky элементов + навигации */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Исправления для форм */
+  .screen-card {
+    margin-bottom: 2rem;
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* Исправляем sticky footer для форм */
+  .sticky-footer {
+    position: fixed !important;
+    bottom: 64px !important; /* Высота мобильной навигации */
+    left: 0;
+    right: 0;
+    z-index: 25; /* Ниже чем у навигации */
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    padding: 1rem;
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .sticky-footer {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  /* В режиме логина (когда навигация скрыта) sticky footer идет к низу экрана */
+  .sticky-footer.login-mode {
+    bottom: 0 !important;
+  }
+
+  /* Убираем отрицательные отступы которые могут мешать прокрутке */
+  .sticky-footer.-mx-5.-mb-5 {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Исправляем CardContent с отступами */
+  [data-card-content="true"] {
+    padding-bottom: 8rem !important; /* Дополнительное пространство для sticky footer */
+  }
+
+  /* Специфичные исправления для ShoppingListForm */
+  .shopping-list-form-container {
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* Убираем фиксированную высоту с textarea */
+  .form-textarea {
+    min-height: 120px;
+    max-height: 300px; /* Ограничиваем максимальную высоту */
+    resize: vertical;
+  }
+
+  /* Исправляем прокрутку для длинного контента */
+  .form-input-group:last-child {
+    margin-bottom: 12rem; /* Пространство для sticky footer + навигации */
+  }
+
+  /* Безопасная зона для iPhone X+ */
+  @supports (padding: max(0px)) {
+    .sticky-footer {
+      bottom: max(64px, calc(64px + env(safe-area-inset-bottom)));
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+
+    main {
+      padding-bottom: max(10rem, calc(10rem + env(safe-area-inset-bottom)));
+    }
+  }
+}
+
+/* Специальные исправления для iPhone устройств */
+/* iPhone SE (375x667) */
+@media only screen and (device-width: 375px) and (device-height: 667px) {
+  main {
+    min-height: calc(100vh - 1rem);
+    padding-bottom: 11rem;
+  }
+  
+  .form-input-group:last-child {
+    margin-bottom: 13rem;
+  }
+}
+
+/* iPhone XR (414x896), iPhone 11 (414x896) */
+@media only screen and (device-width: 414px) and (device-height: 896px) {
+  main {
+    min-height: calc(100vh - 1rem);
+    padding-bottom: 12rem;
+  }
+  
+  .form-input-group:last-child {
+    margin-bottom: 14rem;
+  }
+  
+  .sticky-footer {
+    padding: 1.5rem;
+    bottom: 64px;
+  }
+}
+
+/* iPhone 12/13/14 (390x844) */
+@media only screen and (device-width: 390px) and (device-height: 844px) {
+  main {
+    min-height: calc(100vh - 1rem);
+    padding-bottom: 12rem;
+  }
+  
+  .form-input-group:last-child {
+    margin-bottom: 13rem;
+  }
+}
+
+/* iPhone 12/13/14 Pro Max (428x926) */
+@media only screen and (device-width: 428px) and (device-height: 926px) {
+  main {
+    min-height: calc(100vh - 1rem);
+    padding-bottom: 12rem;
+  }
+  
+  .form-input-group:last-child {
+    margin-bottom: 14rem;
+  }
+}
+
+/* Исправления для альбомной ориентации на мобильных */
+@media (max-width: 767px) and (orientation: landscape) and (max-height: 500px) {
+  main {
+    padding-bottom: 4rem;
+  }
+
+  .sticky-footer {
+    padding: 0.5rem 1rem;
+  }
+
+  .form-textarea {
+    min-height: 80px;
+    max-height: 120px;
+  }
+
+  .form-input-group:last-child {
+    margin-bottom: 5rem;
+  }
+}
+
+/* Исправления для очень маленьких экранов */
+@media (max-width: 320px) {
+  main {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .screen-card {
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 0.5rem;
+  }
+}
+
+/* Дополнительные исправления для webkit (iOS Safari) */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari specific fixes */
+  body {
+    position: fixed;
+    overflow: hidden;
+    width: 100%;
+    height: 100vh;
+  }
+
+  #__next {
+    overflow-y: auto;
+    height: 100vh;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  @media (max-width: 767px) {
+    body {
+      position: static;
+      overflow: auto;
+      height: auto;
+    }
+
+    #__next {
+      height: auto;
+      min-height: 100vh;
+    }
+  }
+}
+
+/* Исправления для touch устройств */
+@media (pointer: coarse) {
+  /* Увеличиваем области касания */
+  .touch-target,
+  button,
+  .form-input,
+  .form-select,
+  .form-textarea {
+    min-height: 44px;
+  }
+
+  /* Улучшаем прокрутку */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Предотвращаем bounce на iOS */
+  .no-bounce {
+    overscroll-behavior: none;
+  }
+}
+
+/* Исправления для конкретных компонентов формы */
+@media (max-width: 767px) {
+  /* AI toggle исправления */
+  .mobile-toggle {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Select компонент исправления */
+  .form-select {
+    min-height: 48px;
+  }
+
+  /* Button исправления */
+  button {
+    min-height: 48px;
+    touch-action: manipulation;
+  }
+
+  /* Input исправления */
+  .form-input {
+    min-height: 48px;
+    font-size: 16px; /* Предотвращает zoom на iOS */
+  }
+
+  .form-textarea {
+    font-size: 16px; /* Предотвращает zoom на iOS */
+  }
+}
+
+/* Анимации для улучшения UX */
+@media (max-width: 767px) {
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+
+  /* Анимация для sticky footer */
+  .sticky-footer {
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .sticky-footer.hidden {
+    transform: translateY(100%);
+  }
+
+  .sticky-footer.visible {
+    transform: translateY(0);
+  }
+}
+
+/* Общие исправления для всех iPhone устройств */
+@supports (-webkit-touch-callout: none) {
+  /* Исправления специально для iOS Safari */
+  @media (max-width: 767px) {
+    body {
+      -webkit-overflow-scrolling: touch;
+      overflow-y: auto;
+    }
+    
+    .screen-card {
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+    }
+    
+    .sticky-footer {
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+    }
+  }
+}
+
+/* Гарантируем, что мобильная навигация всегда сверху */
+@media (max-width: 767px) {
+  /* Мобильная навигация должна быть выше всех sticky элементов */
+  [class*="MobileBottomNavigation"], 
+  .mobile-bottom-navigation {
+    z-index: 50 !important;
+  }
+  
+  /* Sticky footer должен быть ниже навигации */
+  .sticky-footer:not(.login-mode) {
+    z-index: 25 !important;
+    bottom: 64px !important;
+  }
+  
+  /* В режиме логина sticky footer идет к низу */
+  .sticky-footer.login-mode {
+    z-index: 30 !important;
+    bottom: 0 !important;
+  }
+}

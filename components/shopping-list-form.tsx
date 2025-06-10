@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShoppingCart, Store as StoreIcon } from 'lucide-react'; // Renamed Store to StoreIcon to avoid conflict
 import { useDevice } from '@/components/device-detector';
+import { Switch } from '@/components/ui/switch';
 
 // Define a type for the store object fetched from the API
 interface Store {
@@ -61,6 +62,26 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
   
   // Определяем тип устройства для адаптивного интерфейса
   const { isTablet, isDesktop, orientation } = useDevice();
+  
+  // Состояние для отслеживания виртуальной клавиатуры на мобильных
+  const [isKeyboardOpen, setIsKeyboardOpen] = React.useState(false);
+  
+  // Проверяем, находится ли пользователь в режиме логина (когда навигация скрыта)
+  const isInLoginMode = !userId.trim();
+
+  // Обработчик появления/скрытия клавиатуры на мобильных
+  React.useEffect(() => {
+    if (!isDesktop) {
+      const handleResize = () => {
+        // Определяем, открыта ли клавиатура по изменению высоты окна
+        const heightDifference = window.screen.height - window.innerHeight;
+        setIsKeyboardOpen(heightDifference > 150);
+      };
+
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, [isDesktop]);
 
   // Safeguard: ensure availableStores is an array.
   const currentStores = Array.isArray(availableStores) ? availableStores : [];
@@ -106,7 +127,7 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
     ? "desktop-form-clean"
     : isTablet 
       ? "screen-card w-full max-w-2xl mx-auto shadow-md tablet-form-container"
-      : "screen-card w-full max-w-md mx-auto shadow-md";
+      : `screen-card w-full max-w-md mx-auto shadow-md mobile-form-container ${isKeyboardOpen ? 'keyboard-active' : ''} ${isInLoginMode ? 'login-mode' : ''}`;
     
   return (
     <Card className={cardClasses}>
@@ -144,7 +165,7 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
         </CardHeader>
       )}
       
-      <CardContent className={`space-y-5 ${isDesktop ? 'p-4' : 'p-5'}`}>
+      <CardContent className={`space-y-5 ${isDesktop ? 'p-4' : 'p-5'}`} data-card-content="true">
         {isDesktop ? (
           // Desktop two-column layout
           <div className="desktop-form-grid">
@@ -153,21 +174,18 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
               {/* AI toggle */}
               <div className="desktop-card-section">
                 <h3 className="desktop-section-title">Настройки оптимизации</h3>
-                <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-                  <label htmlFor="ai-toggle-form" className="desktop-text font-medium text-gray-700 dark:text-blue-100">
+                <div className="flex items-center justify-between p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                  <label htmlFor="ai-toggle-form-desktop" className="text-sm font-medium text-gray-700 dark:text-gray-200 mr-4">
                     Использовать AI для оптимизации:
                   </label>
-                  <div className="flex items-center">
-                    <div 
-                      className={`desktop-toggle ${useAI ? 'desktop-toggle-on' : 'desktop-toggle-off'}`} 
-                      onClick={() => setUseAI(!useAI)}
-                    >
-                      <div className="desktop-toggle-slider" />
-                    </div>
-                    <span className="desktop-small-text ml-3 font-medium text-gray-500">
-                      {useAI ? 'Включено' : 'Выключено'}
-                    </span>
-                  </div>
+                  <Switch
+                    id="ai-toggle-form-desktop"
+                    checked={useAI}
+                    onCheckedChange={setUseAI}
+                  />
+                  <span className="text-xs ml-3 font-medium text-gray-500 dark:text-gray-400 select-none">
+                    {useAI ? 'Включено' : 'Выключено'}
+                  </span>
                 </div>
               </div>
 
@@ -348,17 +366,15 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
           // Mobile/Tablet single-column layout
           <>
             {/* AI toggle inside the form */}
-            <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-              <label htmlFor="ai-toggle-form" className="text-sm font-medium text-gray-700 dark:text-blue-100">Использовать AI для оптимизации:</label>
-              <div className="flex items-center">
-                <div 
-                  className={`mobile-toggle ${useAI ? 'mobile-toggle-on' : 'mobile-toggle-off'}`} 
-                  onClick={() => setUseAI(!useAI)}
-                >
-                  <div className="mobile-toggle-slider" />
-                </div>
-                <span className="text-xs ml-2 font-medium text-gray-500">{useAI ? 'Вкл' : 'Выкл'}</span>
-              </div>
+            <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <label htmlFor="ai-optimization-toggle-mobile" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Использовать AI для оптимизации:
+              </label>
+              <Switch
+                id="ai-optimization-toggle-mobile"
+                checked={useAI}
+                onCheckedChange={setUseAI}
+              />
             </div>
 
             {/* User Identifier Input - Mobile and Tablet friendly version */}
@@ -483,7 +499,7 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({
             </div>
 
             {/* Action buttons with mobile-friendly styling */}
-            <div className="sticky-footer bg-white pt-4 -mx-5 -mb-5 px-5 pb-5 border-t border-gray-100 mt-6">
+            <div className={`sticky-footer bg-white pt-4 -mx-5 -mb-5 px-5 pb-5 border-t border-gray-100 mt-6 ${isKeyboardOpen ? 'keyboard-hidden' : ''} ${isInLoginMode ? 'login-mode' : ''}`}>
               {/* Optimize button */}
               <Button
                 onClick={() => onOptimize(userId, listName)}
